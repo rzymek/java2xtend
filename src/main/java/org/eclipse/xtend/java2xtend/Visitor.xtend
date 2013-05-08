@@ -30,7 +30,7 @@ class Visitor extends ASTVisitor {
 	
 	override visit(MethodInvocation statement) {
 		if(statement.expression?.toString == "System.out")		 
-			xtend.append('''«statement.name»(«statement.arguments.join(', ')»)
+			xtend.append('''		«statement.name»(«statement.arguments.join(', ')»)
 			''')
 		else 
 			xtend.append(statement)
@@ -68,7 +68,7 @@ class Visitor extends ASTVisitor {
 //	}
 
 	override endVisit(Block node) {
-		xtend.append('''}
+		xtend.append('''	}
 		''');		
 	}
 
