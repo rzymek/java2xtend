@@ -1,21 +1,19 @@
 java2xtend
 ==========
 
-Java to Xtend conversion
-
 The aim it to aid in converting pure Java code to Xtend sources.
 Uses Eclipse JDT AST for Java parsing.
 
 Example 1:
 
-  public class HelloWorld {
+	public class HelloWorld {
 		public static void main(String[] args) {
 			System.out.println("Hello World!");
 		}
 	}
-after convertion will be
+after convertion will become
 
-  class HelloWorld {
+	class HelloWorld {
 		def static void main(String[] args) {
 			println("Hello World!")
 		}
@@ -23,7 +21,7 @@ after convertion will be
 
 Example 2:
 
-  package com.example;
+	package com.example;
 	
 	import java.io.Serializable;
 	import java.util.ArrayList;
@@ -38,9 +36,9 @@ Example 2:
 			this.list = list;
 		}
 	}
-after convertion will be
+will yeld
 
-  package com.example
+	package com.example
 	
 	import java.io.Serializable
 	import java.util.ArrayList
@@ -58,13 +56,11 @@ after convertion will be
 Usage
 =====
 
-  val j2x = new org.eclipse.xtend.java2xtend.Java2Xtend;
-  val javaCode = '//java code'
-  val String xtendCode = j2x.toXtend(javaCode);
-
+	val j2x = new org.eclipse.xtend.java2xtend.Java2Xtend;
+	val javaCode = '//java code'
+	val String xtendCode = j2x.toXtend(javaCode);
 Build
 =====
-
 1. Generate Eclipse project: `mvn eclipse:eclipse`
 2. In Eclipse import the project using `File > Import > Existing project into workspace...`
 3. Make sure you have the Xtend Eclipse Plugin. You can install it from Eclipse marketplace (`Help > Eclipse Marketplace ...`)
