@@ -19,6 +19,11 @@
     <version>3.3.0-v20070607-1200</version>
 </dependency> -->
 		<dependency>
+			<groupId>org.eclipse.xtend</groupId>
+			<artifactId>org.eclipse.xtend.standalone</artifactId>
+			<version>${xtend.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.eclipse.jdt</groupId>
 			<artifactId>core</artifactId>
 			<version>3.3.0-v_771</version>
