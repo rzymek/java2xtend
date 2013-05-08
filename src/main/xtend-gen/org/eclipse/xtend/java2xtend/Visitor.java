@@ -66,12 +66,13 @@ public class Visitor extends ASTVisitor {
       boolean _equals = Objects.equal(_string, "System.out");
       if (_equals) {
         StringConcatenation _builder = new StringConcatenation();
+        _builder.append("\t\t");
         SimpleName _name = statement.getName();
-        _builder.append(_name, "");
+        _builder.append(_name, "		");
         _builder.append("(");
         List _arguments = statement.arguments();
         String _join = IterableExtensions.join(_arguments, ", ");
-        _builder.append(_join, "");
+        _builder.append(_join, "		");
         _builder.append(")");
         _builder.newLineIfNotEmpty();
         this.xtend.append(_builder);
@@ -186,6 +187,7 @@ public class Visitor extends ASTVisitor {
   
   public void endVisit(final Block node) {
     StringConcatenation _builder = new StringConcatenation();
+    _builder.append("\t");
     _builder.append("}");
     _builder.newLine();
     this.xtend.append(_builder);

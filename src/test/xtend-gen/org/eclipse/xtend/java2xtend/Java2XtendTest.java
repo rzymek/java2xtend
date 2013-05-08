@@ -12,7 +12,7 @@ import org.junit.Test;
 public class Java2XtendTest {
   @Test
   public void convert() {
-    this.convertResource("/HelloWorld.java.txt");
+    this.convertResource("/Board.java.txt");
   }
   
   public String convertResource(final String name) {
