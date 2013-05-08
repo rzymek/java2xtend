@@ -2,3 +2,4 @@
 .project
 target
 *._trace
+/src/*/xtend-gen
