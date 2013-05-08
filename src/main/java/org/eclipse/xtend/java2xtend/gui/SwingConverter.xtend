@@ -1,10 +1,11 @@
-package org.eclipse.xtend.java2xtend
+package org.eclipse.xtend.java2xtend.gui
 
 import java.awt.BorderLayout
 import java.awt.Dimension
 import javax.swing.JButton
 import javax.swing.JFrame
 import javax.swing.JTextArea
+import org.eclipse.xtend.java2xtend.Java2Xtend
 
 class SwingConverter extends JFrame {
 	val textArea = new JTextArea
