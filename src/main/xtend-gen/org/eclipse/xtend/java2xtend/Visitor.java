@@ -62,7 +62,7 @@ public class Visitor extends ASTVisitor {
     boolean _xblockexpression = false;
     {
       Expression _expression = statement.getExpression();
-      String _string = _expression.toString();
+      String _string = _expression==null?(String)null:_expression.toString();
       boolean _equals = Objects.equal(_string, "System.out");
       if (_equals) {
         StringConcatenation _builder = new StringConcatenation();
@@ -94,35 +94,59 @@ public class Visitor extends ASTVisitor {
           }
         };
       final List<SingleVariableDeclaration> params = ListExtensions.<Object, SingleVariableDeclaration>map(_parameters, _function);
-      StringConcatenation _builder = new StringConcatenation();
-      _builder.append("\t");
-      _builder.append("def ");
-      String _join = IterableExtensions.join(modifiers, " ");
-      _builder.append(_join, "	");
-      _builder.append(" ");
-      Type _returnType2 = node.getReturnType2();
-      _builder.append(_returnType2, "	");
-      _builder.append(" ");
-      SimpleName _name = node.getName();
-      _builder.append(_name, "	");
-      _builder.append("(");
-      {
-        boolean _hasElements = false;
-        for(final SingleVariableDeclaration param : params) {
-          if (!_hasElements) {
-            _hasElements = true;
-          } else {
-            _builder.appendImmediate(", ", "	");
+      boolean _isConstructor = node.isConstructor();
+      if (_isConstructor) {
+        StringConcatenation _builder = new StringConcatenation();
+        _builder.append("\t");
+        _builder.append("def new(");
+        {
+          boolean _hasElements = false;
+          for(final SingleVariableDeclaration param : params) {
+            if (!_hasElements) {
+              _hasElements = true;
+            } else {
+              _builder.appendImmediate(", ", "	");
+            }
+            Type _type = param.getType();
+            _builder.append(_type, "	");
+            _builder.append(" ");
+            SimpleName _name = param.getName();
+            _builder.append(_name, "	");
           }
-          Type _type = param.getType();
-          _builder.append(_type, "	");
-          _builder.append(" ");
-          SimpleName _name_1 = param.getName();
-          _builder.append(_name_1, "	");
         }
+        _builder.append(")");
+        this.xtend.append(_builder);
+      } else {
+        StringConcatenation _builder_1 = new StringConcatenation();
+        _builder_1.append("\t");
+        _builder_1.append("def ");
+        String _join = IterableExtensions.join(modifiers, " ");
+        _builder_1.append(_join, "	");
+        _builder_1.append(" ");
+        Type _returnType2 = node.getReturnType2();
+        _builder_1.append(_returnType2, "	");
+        _builder_1.append(" ");
+        SimpleName _name_1 = node.getName();
+        _builder_1.append(_name_1, "	");
+        _builder_1.append("(");
+        {
+          boolean _hasElements_1 = false;
+          for(final SingleVariableDeclaration param_1 : params) {
+            if (!_hasElements_1) {
+              _hasElements_1 = true;
+            } else {
+              _builder_1.appendImmediate(", ", "	");
+            }
+            Type _type_1 = param_1.getType();
+            _builder_1.append(_type_1, "	");
+            _builder_1.append(" ");
+            SimpleName _name_2 = param_1.getName();
+            _builder_1.append(_name_2, "	");
+          }
+        }
+        _builder_1.append(")");
+        this.xtend.append(_builder_1);
       }
-      _builder.append(")");
-      this.xtend.append(_builder);
       _xblockexpression = (true);
     }
     return _xblockexpression;
