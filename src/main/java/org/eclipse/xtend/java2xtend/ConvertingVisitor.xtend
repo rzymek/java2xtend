@@ -16,6 +16,8 @@ import org.eclipse.jdt.core.dom.NameWrapper
 import org.eclipse.jdt.core.dom.TypeDeclaration
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement
+import org.eclipse.jdt.internal.core.dom.XtendASTFlattener
+import java.util.regex.Pattern
 
 class ConvertingVisitor extends ASTVisitor {
 	override visit(TypeDeclaration node) {
@@ -75,28 +77,31 @@ class ConvertingVisitor extends ASTVisitor {
 		node.modifiers.removeAll(modifiers.filter[private || final])
 	}
 
-	override visit(MethodInvocation statement) {
-		if (statement.expression?.toString == "System.out") {
-			if (statement.name.toString.startsWith("print")) {
-				statement.expression.delete
+	override visit(MethodInvocation node) {
+		if (node.expression?.toString == "System.out") {
+			if (node.name.toString.startsWith("print")) {
+				node.expression.delete
+				return true
 			}
 		}
+		val getterPrefixes = #['is','get','has']
+		
+		if (node.arguments.empty) {
+			val name = node.name;
+			val identifier = name.identifier
+			val matchingPrefix = getterPrefixes.findFirst [
+				identifier.startsWith(it)
+			]
+			if (matchingPrefix != null) {
+				val newName = identifier.substring(matchingPrefix.length).toFirstLower
+				node.parent.setStructuralProperty(node.locationInParent, node.AST.newFieldAccess() => [f|					
+					f.expression = ASTNode::copySubtree(node.AST, node.expression) as Expression
+					f.name = new NameWrapper(node.AST, newName) 
+				])
+			}
+			return true
+		}
 		true
-	}
-	
-	override visit(ConditionalExpression node) {
-		val ast = node.AST
-		val ifStm = ast.newIfStatement
-		ifStm.expression = ASTNode::copySubtree(ast, node.expression) as Expression
-		ifStm.thenStatement = ast.newExpressionStatement(ASTNode::copySubtree(ast, node.thenExpression) as Expression)
-		ifStm.elseStatement = ast.newExpressionStatement(ASTNode::copySubtree(ast, node.elseExpression) as Expression)
-		ifStm.expression.accept(this)
-		ifStm.thenStatement.accept(this)
-		ifStm.elseStatement.accept(this)
-		node.parent.setStructuralProperty(node.locationInParent, 
-			new NameWrapper(ast, ifStm.toString)
-		);
-		false
 	}
 
 	override visit(MethodDeclaration node) {
