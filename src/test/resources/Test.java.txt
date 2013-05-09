@@ -1,0 +1,25 @@
+package com.example;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Test implements Serializable {
+        private static final long serialVersionUID = 1L;
+        private List<String> list = null;
+        private List<String> otherList = new ArrayList<String>();
+
+        public Test(List<String> list) {
+                this.list = list;               
+        }
+        
+        public void foo() {
+        	String x = "abc";
+        	List<Integer> list = Arrays.asList(1,2,3,4,5);
+        	int i;
+        }
+        
+        public String toString() {
+        	return "the test";
+        }
+}
