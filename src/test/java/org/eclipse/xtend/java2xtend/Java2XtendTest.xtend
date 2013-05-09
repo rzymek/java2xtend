@@ -2,6 +2,7 @@ package org.eclipse.xtend.java2xtend
 
 import org.apache.commons.io.IOUtils
 import org.junit.Test
+
 import static org.junit.Assert.*
 
 class Java2XtendTest {
