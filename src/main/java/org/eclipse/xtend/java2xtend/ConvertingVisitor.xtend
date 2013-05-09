@@ -1,9 +1,9 @@
 package org.eclipse.xtend.java2xtend
 
-import org.eclipse.jdt.core.dom.ASTNode
 import org.eclipse.jdt.core.dom.ASTVisitor
 import org.eclipse.jdt.core.dom.Block
 import org.eclipse.jdt.core.dom.BodyDeclaration
+import org.eclipse.jdt.core.dom.EnhancedForStatement
 import org.eclipse.jdt.core.dom.FieldDeclaration
 import org.eclipse.jdt.core.dom.MethodDeclaration
 import org.eclipse.jdt.core.dom.MethodInvocation
@@ -31,8 +31,14 @@ class ConvertingVisitor extends ASTVisitor {
 		false
 	}
 
+	override visit(EnhancedForStatement node) {
+		val ast = node.AST
+		node.parameter.type = ast.newSimpleType(new NameWrapper(ast, '')) 
+		true
+	}
+
 	override visit(VariableDeclarationStatement node) {
-		val ast = node.getAST()
+		val ast = node.AST
 		val modifiers = node.modifiers.map[it as Modifier]
 		val valOrVar = if(modifiers.filter[final].empty) 'var' else 'val'
 		val hasInitializer = !node.fragments.filter[it instanceof VariableDeclarationFragment].map[
