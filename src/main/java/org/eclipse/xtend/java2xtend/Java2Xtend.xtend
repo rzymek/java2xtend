@@ -10,7 +10,8 @@ class Java2Xtend {
 		val ast = parser.createAST(/*progress monitor*/null);
 		val visitor = new Visitor
 		ast.accept(visitor)
-		val xtend = visitor.toString
-		xtend
+//		val xtend = visitor.toString
+//		xtend
+		ast.toString
 	}
 }

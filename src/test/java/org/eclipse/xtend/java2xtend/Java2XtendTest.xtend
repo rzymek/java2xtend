@@ -12,12 +12,14 @@ class Java2XtendTest {
 //		convertResource("/HelloWorld.java.txt")
 //		convertResource("/VisitorMethods.java.txt")
 	}
- 
+	
 	def convertResource(String name) {
 		val java = IOUtils::toString(class.getResourceAsStream(name))
 		val j2x = new Java2Xtend
 		val xtend = j2x.toXtend(java)
 		assertNotNull(xtend)
+		println('\n\n--------------------------------------------------')
 		println(xtend)
+		println('\n--------------------------------------------------')
 	}
 }
