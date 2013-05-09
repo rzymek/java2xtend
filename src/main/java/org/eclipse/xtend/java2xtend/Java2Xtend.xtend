@@ -2,6 +2,7 @@ package org.eclipse.xtend.java2xtend
 
 import org.eclipse.jdt.core.dom.AST
 import org.eclipse.jdt.core.dom.ASTParser
+import org.eclipse.jdt.internal.core.dom.NaiveASTFlattener
 
 class Java2Xtend {
 	def String toXtend(String java) {
@@ -10,6 +11,8 @@ class Java2Xtend {
 		val ast = parser.createAST(/*progress monitor*/null);
 		val visitor = new ConvertingVisitor
 		ast.accept(visitor)
-		ast.toString
+		val printer = new NaiveASTFlattener
+		ast.accept(printer);
+		return printer.getResult()
 	}
 }

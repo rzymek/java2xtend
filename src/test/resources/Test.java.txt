@@ -15,15 +15,17 @@ public class Test implements Serializable {
 	}
 
 	public void foo() {
-		final Double d;
-		String x = "abc";
+		Double d;
+		final String x = "abc";
 		List<Integer> list = Arrays.asList(1, 2, 3, 4, 5);
 		int i;
 		for (Integer integer : list) {
 			System.out.println(integer);
 		}
+		double f = x.equals("x") ? 1.0 : 2.0;
 	}
 
+	@Override
 	public String toString() {
 		return "the test";
 	}

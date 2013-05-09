@@ -15,16 +15,12 @@ import webboards.client.data.ref.CounterId;
 import webboards.client.ex.WebBoardsException;
 import webboards.client.games.Hex;
 import webboards.client.games.Position;
-import webboards.client.overlay.Overlay;
 
 public abstract class Board implements Serializable {
 	private static final long serialVersionUID = 1L;
-	/** counters created during scenation setup*/
 	private Map<CounterId, CounterInfo> counters = null;
-	/** counters placed during play */
 	private Map<CounterId, CounterInfo> placed = null;
-	private List<Overlay> overlayes = new ArrayList<Overlay>();
-	
+
 	public Board() {
 		counters = new HashMap<CounterId, CounterInfo>();
 		placed = new HashMap<CounterId, CounterInfo>();
