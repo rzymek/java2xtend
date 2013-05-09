@@ -1,0 +1,41 @@
+package webboards.client.data;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import webboards.client.data.ref.CounterId;
+import webboards.client.ex.WebBoardsException;
+import webboards.client.games.Hex;
+import webboards.client.games.Position;
+import webboards.client.overlay.Overlay;
+
+public abstract class Board implements Serializable {
+	private static final long serialVersionUID = 1L;
+	/** counters created during scenation setup*/
+	private Map<CounterId, CounterInfo> counters = null;
+	/** counters placed during play */
+	private Map<CounterId, CounterInfo> placed = null;
+	private List<Overlay> overlayes = new ArrayList<Overlay>();
+	
+	public Board() {
+		counters = new HashMap<CounterId, CounterInfo>();
+		placed = new HashMap<CounterId, CounterInfo>();
+	}
+
+	public Set<Position> getStacks() {
+		Set<Position> stacks = new HashSet<Position>();
+		Set<Entry<CounterId, CounterInfo>> entrySet = counters.entrySet();		
+		for (Entry<CounterId, CounterInfo> entry : entrySet) {
+			stacks.add(entry.getValue().getPosition());
+		}
+		return stacks;
+	}
+}

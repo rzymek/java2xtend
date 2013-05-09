@@ -8,8 +8,9 @@ class Java2XtendTest {
 	
 	@Test
 	def void convert() {
-		convertResource("/HelloWorld.java.txt")
-//		convertResource("/VisitorMethods.java")
+		convertResource("/Board.java.txt")
+//		convertResource("/HelloWorld.java.txt")
+//		convertResource("/VisitorMethods.java.txt")
 	}
  
 	def convertResource(String name) {
