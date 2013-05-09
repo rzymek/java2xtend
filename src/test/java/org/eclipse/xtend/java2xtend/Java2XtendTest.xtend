@@ -6,12 +6,22 @@ import org.junit.Test
 import static org.junit.Assert.*
 
 class Java2XtendTest {
-	
+
 	@Test
-	def void convert() {
+	def void convertTest() {
 		convertResource("/Test.java.txt")
-//		convertResource("/HelloWorld.java.txt")
-//		convertResource("/VisitorMethods.java.txt")
+	}
+	@Test
+	def void convertHelloWorld() {
+		convertResource("/HelloWorld.java.txt")
+	}
+	@Test
+	def void convertBoard() {
+		convertResource("/Board.java.txt")
+	}
+	@Test
+	def void convertVisitorMethods() {
+		convertResource("/VisitorMethods.java.txt")
 	}
 	
 	def convertResource(String name) {

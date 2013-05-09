@@ -2,6 +2,7 @@ package org.eclipse.xtend.java2xtend
 
 import org.eclipse.jdt.core.dom.ASTNode
 import org.eclipse.jdt.core.dom.ASTVisitor
+import org.eclipse.jdt.core.dom.Block
 import org.eclipse.jdt.core.dom.BodyDeclaration
 import org.eclipse.jdt.core.dom.FieldDeclaration
 import org.eclipse.jdt.core.dom.MethodDeclaration
@@ -10,23 +11,9 @@ import org.eclipse.jdt.core.dom.Modifier
 import org.eclipse.jdt.core.dom.NameWrapper
 import org.eclipse.jdt.core.dom.TypeDeclaration
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment
-import org.eclipse.jdt.core.dom.Block
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement
 
-class Debug extends ASTVisitor {
-	String prefix
-
-	new(String prefix) {
-		this.prefix = prefix
-	}
-
-	override preVisit(ASTNode node) {
-		println(prefix + ' ' + node.class.simpleName+':'+node.toString.replace('\n',' '))
-	}
-
-}
-
-class Visitor extends ASTVisitor {
+class ConvertingVisitor extends ASTVisitor {
 	override visit(TypeDeclaration node) {
 		val modifiers = node.modifiers.map[it as Modifier]
 		node.modifiers.removeAll(modifiers.filter[public])
@@ -35,38 +22,35 @@ class Visitor extends ASTVisitor {
 
 	override visit(FieldDeclaration node) {
 		val modifiers = modifiers(node)
-		val hasInitializer = !node.fragments
-			.filter[it instanceof VariableDeclarationFragment]
-			.map[it as VariableDeclarationFragment]
-			.filter[initializer != null && initializer?.toString.trim != 'null']
-			.empty
+		val hasInitializer = !node.fragments.filter[it instanceof VariableDeclarationFragment].map[
+			it as VariableDeclarationFragment].filter[initializer != null && initializer?.toString.trim != 'null'].empty
 		if (hasInitializer) {
 			replaceTypeWith(node, if(modifiers.filter[final].empty) 'var' else 'val');
 		}
 		removeDefaultModifiers(node)
 		false
 	}
-	
+
 	override visit(VariableDeclarationStatement node) {
-		val hasInitializer = !node.fragments
-			.filter[it instanceof VariableDeclarationFragment]
-			.map[it as VariableDeclarationFragment]
-			.filter[initializer != null && initializer?.toString.trim != 'null']
-			.empty
+		val ast = node.getAST()
+		val modifiers = node.modifiers.map[it as Modifier]
+		val valOrVar = if(modifiers.filter[final].empty) 'var' else 'val'
+		val hasInitializer = !node.fragments.filter[it instanceof VariableDeclarationFragment].map[
+			it as VariableDeclarationFragment].filter[initializer != null && initializer?.toString.trim != 'null'].empty
 		if (hasInitializer) {
-			val modifiers = node.modifiers.map[it as Modifier]
-			val valOrVar = if(modifiers.filter[final].empty) 'var' else 'val'
-			val ast = node.getAST()
 			node.type = ast.newSimpleType(ast.newName(valOrVar))
+		} else {
+			node.setType(ast.newSimpleType(new NameWrapper(ast, valOrVar + ' ' + node.type)))
 		}
 		true
 	}
 
 	override visit(Block node) {
-		node.accept(new Debug(""))
+		println("------------------------")
+		node.accept(new DebugVisitor(""))
 		true
 	}
-	
+
 	def modifiers(BodyDeclaration node) {
 		node.modifiers.map[it as Modifier]
 	}
@@ -85,7 +69,6 @@ class Visitor extends ASTVisitor {
 		true
 	}
 
-	
 	override visit(MethodDeclaration node) {
 		if (node.constructor) {
 			node.name = new NameWrapper(node.AST, "new")

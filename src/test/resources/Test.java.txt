@@ -15,6 +15,7 @@ public class Test implements Serializable {
 	}
 
 	public void foo() {
+		final Double d;
 		String x = "abc";
 		List<Integer> list = Arrays.asList(1, 2, 3, 4, 5);
 		int i;

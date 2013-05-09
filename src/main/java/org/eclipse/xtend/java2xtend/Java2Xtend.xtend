@@ -8,10 +8,8 @@ class Java2Xtend {
 		val parser = ASTParser::newParser(AST::JLS3);
 		parser.setSource(java.toCharArray);
 		val ast = parser.createAST(/*progress monitor*/null);
-		val visitor = new Visitor
+		val visitor = new ConvertingVisitor
 		ast.accept(visitor)
-//		val xtend = visitor.toString
-//		xtend
 		ast.toString
 	}
 }
