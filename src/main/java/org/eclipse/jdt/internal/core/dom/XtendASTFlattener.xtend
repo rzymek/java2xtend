@@ -1,8 +1,11 @@
 package org.eclipse.jdt.internal.core.dom
 
+import org.eclipse.jdt.core.dom.Block
 import org.eclipse.jdt.core.dom.ConditionalExpression
 import org.eclipse.jdt.core.dom.EmptyStatement
 import org.eclipse.jdt.core.dom.ExpressionStatement
+import org.eclipse.jdt.core.dom.MethodDeclaration
+import org.eclipse.jdt.core.dom.ReturnStatement
 
 class XtendASTFlattener extends NaiveASTFlattener {
 
@@ -25,6 +28,24 @@ class XtendASTFlattener extends NaiveASTFlattener {
 		false
 	}
 
+	override visit(ReturnStatement node) {
+		if (isLastStatement(node)) {
+			if (node.getExpression() != null) {
+				printIndent()
+				node.getExpression().accept(this)
+				this.buffer.append('\n')
+			}
+		} else {
+			super.visit(node)
+		}
+		false
+	}
+	
+	private def isLastStatement(ReturnStatement node) {
+		val p = node.getParent()
+		((p instanceof Block && p.parent instanceof MethodDeclaration) && ((p as Block).statements.last == node))
+	}
+	
 	override visit(EmptyStatement node) {
 		false;
 	}

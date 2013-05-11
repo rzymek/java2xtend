@@ -8,15 +8,16 @@ import org.eclipse.jdt.core.dom.BodyDeclaration
 import org.eclipse.jdt.core.dom.ChildListPropertyDescriptor
 import org.eclipse.jdt.core.dom.EnhancedForStatement
 import org.eclipse.jdt.core.dom.Expression
+import org.eclipse.jdt.core.dom.FieldAccess
 import org.eclipse.jdt.core.dom.FieldDeclaration
 import org.eclipse.jdt.core.dom.MethodDeclaration
 import org.eclipse.jdt.core.dom.MethodInvocation
 import org.eclipse.jdt.core.dom.Modifier
 import org.eclipse.jdt.core.dom.NameWrapper
+import org.eclipse.jdt.core.dom.PrimitiveType
 import org.eclipse.jdt.core.dom.TypeDeclaration
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement
-import org.eclipse.jdt.core.dom.FieldAccess
 
 class ConvertingVisitor extends ASTVisitor {
 	override visit(TypeDeclaration node) {
@@ -129,7 +130,8 @@ class ConvertingVisitor extends ASTVisitor {
 		} else {
 			val ast = node.AST
 			var decl = 'def'
-			if (!modifiers.filter[abstract].empty) {
+			val retType = node.returnType2
+			if (modifiers.exists[abstract] || (retType.primitiveType && (retType as PrimitiveType).getPrimitiveTypeCode.toString == "void")) {
 				decl = decl + ' ' + node.returnType2
 			}
 			node.returnType2 = ast.newSimpleType(new NameWrapper(ast, decl))
