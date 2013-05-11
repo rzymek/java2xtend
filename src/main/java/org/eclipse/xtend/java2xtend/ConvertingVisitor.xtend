@@ -31,7 +31,7 @@ class ConvertingVisitor extends ASTVisitor {
 		val hasInitializer = !node.fragments.filter[it instanceof VariableDeclarationFragment].map[
 			it as VariableDeclarationFragment].filter[initializer != null && initializer?.toString.trim != 'null'].empty
 		if (hasInitializer) {
-			replaceTypeWith(node, if(modifiers.filter[final].empty) 'var' else 'val');
+			replaceTypeWith(node, if(modifiers.exists[final]) 'var' else 'val');
 		}
 		removeDefaultModifiers(node)
 		false
@@ -48,11 +48,10 @@ class ConvertingVisitor extends ASTVisitor {
 		val modifiers = modifiers(node.modifiers)
 		node.modifiers
 		val valOrVar = if(modifiers.filter[final].empty) 'var' else 'val'
-		val hasInitializer = !node.fragments
+		val hasInitializer = node.fragments
 			.filter[it instanceof VariableDeclarationFragment]
 			.map[it as VariableDeclarationFragment]
-			.filter[initializer != null && initializer?.toString.trim != 'null']
-			.empty
+			.exists[initializer != null && initializer?.toString.trim != 'null']
 		node.modifiers.removeAll(modifiers.filter[final])
 		if (hasInitializer) {
 			node.type = ast.newSimpleType(ast.newName(valOrVar))
