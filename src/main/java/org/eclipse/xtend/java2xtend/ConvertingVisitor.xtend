@@ -5,7 +5,7 @@ import org.eclipse.jdt.core.dom.ASTNode
 import org.eclipse.jdt.core.dom.ASTVisitor
 import org.eclipse.jdt.core.dom.Block
 import org.eclipse.jdt.core.dom.BodyDeclaration
-import org.eclipse.jdt.core.dom.ConditionalExpression
+import org.eclipse.jdt.core.dom.ChildListPropertyDescriptor
 import org.eclipse.jdt.core.dom.EnhancedForStatement
 import org.eclipse.jdt.core.dom.Expression
 import org.eclipse.jdt.core.dom.FieldDeclaration
@@ -16,8 +16,7 @@ import org.eclipse.jdt.core.dom.NameWrapper
 import org.eclipse.jdt.core.dom.TypeDeclaration
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement
-import org.eclipse.jdt.internal.core.dom.XtendASTFlattener
-import java.util.regex.Pattern
+import org.eclipse.jdt.core.dom.FieldAccess
 
 class ConvertingVisitor extends ASTVisitor {
 	override visit(TypeDeclaration node) {
@@ -94,14 +93,33 @@ class ConvertingVisitor extends ASTVisitor {
 			]
 			if (matchingPrefix != null) {
 				val newName = identifier.substring(matchingPrefix.length).toFirstLower
-				node.parent.setStructuralProperty(node.locationInParent, node.AST.newFieldAccess() => [f|					
-					f.expression = ASTNode::copySubtree(node.AST, node.expression) as Expression
-					f.name = new NameWrapper(node.AST, newName) 
-				])
+				val newNode = node.AST.newFieldAccess() => [f|					
+						f.expression = ASTNode::copySubtree(node.AST, node.expression) as Expression
+						f.name = new NameWrapper(node.AST, newName) 
+					]
+				replaceNode(node.parent, node, newNode)
 			}
 			return true
 		}
 		true
+	}
+	
+	def replaceNode(ASTNode parent, MethodInvocation node, FieldAccess access) {
+		val location = node.locationInParent
+		if (location instanceof ChildListPropertyDescriptor && location.id == "arguments") {
+			val parentCall = parent as MethodInvocation
+			val index = parentCall.arguments.indexOf(node)
+			if (index >= 0) {
+				parentCall.arguments.set(index, access)
+				if (access.expression instanceof MethodInvocation) {
+					visit(access.expression as MethodInvocation)
+				}
+			} else {
+				throw new RuntimeException("Unable to replace " + node + " in " + parent + " for " + access)
+			}
+		} else {
+			parent.setStructuralProperty(location, access)
+		}
 	}
 
 	override visit(MethodDeclaration node) {
