@@ -6,9 +6,11 @@ import org.eclipse.jdt.core.dom.ASTVisitor
 import org.eclipse.jdt.core.dom.ChildListPropertyDescriptor
 import org.eclipse.jdt.core.dom.EnhancedForStatement
 import org.eclipse.jdt.core.dom.Expression
+import org.eclipse.jdt.core.dom.InfixExpression
 import org.eclipse.jdt.core.dom.MethodInvocation
 import org.eclipse.jdt.core.dom.NameWrapper
 import org.eclipse.jdt.core.dom.TypeLiteral
+import org.eclipse.jdt.core.dom.CustomInfixExpression
 
 class ConvertingVisitor extends ASTVisitor {
 
@@ -33,6 +35,15 @@ class ConvertingVisitor extends ASTVisitor {
 				return true
 			}
 		}
+		
+		if (node.name.identifier == 'equals' && node.arguments.size === 1) {
+			val newInfix = new CustomInfixExpression(node.AST, '==')
+			newInfix.leftOperand = ASTNode::copySubtree(node.AST, node.expression) as Expression
+			newInfix.rightOperand = ASTNode::copySubtree(node.AST, node.arguments.get(0) as ASTNode) as Expression
+			replaceNode(node, newInfix)
+			return false
+		}
+		
 		val getterPrefixes = #['is','get','has']
 
 		if (node.arguments.empty) {
@@ -60,6 +71,18 @@ class ConvertingVisitor extends ASTVisitor {
 		}
 		true
 	}
+	
+	override visit(InfixExpression exp) {
+		if (exp.operator.toString == '==') {
+			val newInfix = new CustomInfixExpression(exp.AST, '===')
+			newInfix.leftOperand = ASTNode::copySubtree(exp.AST, exp.leftOperand) as Expression
+			newInfix.rightOperand = ASTNode::copySubtree(exp.AST, exp.rightOperand) as Expression
+			replaceNode(exp, newInfix)
+			false
+		} else {
+			true
+		}
+	} 
 	
 	private def replaceNode(ASTNode node, Expression exp) {
 		val parent = node.parent

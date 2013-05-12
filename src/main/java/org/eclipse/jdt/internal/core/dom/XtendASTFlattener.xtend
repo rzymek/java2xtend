@@ -6,9 +6,11 @@ import org.eclipse.jdt.core.dom.ASTNode
 import org.eclipse.jdt.core.dom.Block
 import org.eclipse.jdt.core.dom.CastExpression
 import org.eclipse.jdt.core.dom.ConditionalExpression
+import org.eclipse.jdt.core.dom.CustomInfixExpression
 import org.eclipse.jdt.core.dom.EmptyStatement
 import org.eclipse.jdt.core.dom.ExpressionStatement
 import org.eclipse.jdt.core.dom.FieldDeclaration
+import org.eclipse.jdt.core.dom.InfixExpression
 import org.eclipse.jdt.core.dom.MethodDeclaration
 import org.eclipse.jdt.core.dom.Modifier$ModifierKeyword
 import org.eclipse.jdt.core.dom.ReturnStatement
@@ -163,5 +165,19 @@ class XtendASTFlattener extends NaiveASTFlattener {
 		}
 		false
 	}
+	
+	override visit(InfixExpression exp) {
+		if (exp instanceof CustomInfixExpression) {
+			exp.leftOperand.accept(this)
+			this.buffer.append(' ')
+			this.buffer.append((exp as CustomInfixExpression).customOperator)
+			this.buffer.append(' ')
+			exp.rightOperand.accept(this)
+			false
+		} else {
+			super.visit(exp)
+		}
+	} 
+	
 
 }
