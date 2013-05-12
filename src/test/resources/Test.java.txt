@@ -26,6 +26,7 @@ public abstract class Test implements Serializable {
 		double f = x.equals("x") ? 1.0 : 2.0;
 		boolean e = x.isEmpty();
 		System.out.getClass().getPackage().getName();
+		this.foo();
 	}
 
 	protected abstract void test(int i);

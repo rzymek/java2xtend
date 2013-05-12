@@ -74,6 +74,7 @@ class ConvertingVisitor extends ASTVisitor {
 				return true
 			}
 		}
+		node.expression?.accept(this)
 		val getterPrefixes = #['is','get','has']
 		
 		if (node.arguments.empty) {
@@ -82,13 +83,16 @@ class ConvertingVisitor extends ASTVisitor {
 			val matchingPrefix = getterPrefixes.findFirst [
 				identifier.startsWith(it)
 			]
-			if (matchingPrefix != null) {
-				val newName = identifier.substring(matchingPrefix.length).toFirstLower
-				node.parent.setStructuralProperty(node.locationInParent, node.AST.newFieldAccess() => [f|					
-					f.expression = ASTNode::copySubtree(node.AST, node.expression) as Expression
-					f.name = new NameWrapper(node.AST, newName) 
-				])
-			}
+			
+			node.parent.setStructuralProperty(node.locationInParent, node.AST.newFieldAccess() => [f|					
+				f.expression = ASTNode::copySubtree(node.AST, node.expression) as Expression
+				val newName = if (matchingPrefix != null) {
+					identifier.substring(matchingPrefix.length).toFirstLower
+				}else{
+					identifier
+				}
+				f.name = new NameWrapper(node.AST, newName) 
+			])
 			return true
 		}
 		true

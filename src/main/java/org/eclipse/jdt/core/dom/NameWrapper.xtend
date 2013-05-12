@@ -15,4 +15,9 @@ class NameWrapper extends SimpleName {
 //		cpd
 	}
 	
+	override clone0(AST target) {
+		new NameWrapper(target, identifier) => [result|			
+			result.setSourceRange(getStartPosition(), getLength());
+		]
+	}
 }
