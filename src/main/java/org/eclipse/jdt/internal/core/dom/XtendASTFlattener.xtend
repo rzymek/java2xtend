@@ -1,6 +1,7 @@
 package org.eclipse.jdt.internal.core.dom
 
 import org.eclipse.jdt.core.dom.Block
+import org.eclipse.jdt.core.dom.CastExpression
 import org.eclipse.jdt.core.dom.ConditionalExpression
 import org.eclipse.jdt.core.dom.EmptyStatement
 import org.eclipse.jdt.core.dom.ExpressionStatement
@@ -45,6 +46,16 @@ class XtendASTFlattener extends NaiveASTFlattener {
 		val p = node.getParent()
 		((p instanceof Block && p.parent instanceof MethodDeclaration) && ((p as Block).statements.last == node))
 	}
+	
+	override def visit(CastExpression cast) {
+		this.buffer.append('(')
+		cast.expression.accept(this);
+		this.buffer.append(" as ")
+		cast.type.accept(this)
+		this.buffer.append(')')
+		false
+	}
+	
 	
 	override visit(EmptyStatement node) {
 		false;
