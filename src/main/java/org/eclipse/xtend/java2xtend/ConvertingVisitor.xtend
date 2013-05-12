@@ -3,14 +3,11 @@ package org.eclipse.xtend.java2xtend
 import java.util.List
 import org.eclipse.jdt.core.dom.ASTNode
 import org.eclipse.jdt.core.dom.ASTVisitor
-import org.eclipse.jdt.core.dom.Block
 import org.eclipse.jdt.core.dom.BodyDeclaration
-import org.eclipse.jdt.core.dom.ChildListPropertyDescriptor
-import org.eclipse.jdt.core.dom.CompilationUnit
-import org.eclipse.jdt.core.dom.ConditionalExpression
 import org.eclipse.jdt.core.dom.EnhancedForStatement
 import org.eclipse.jdt.core.dom.Expression
 import org.eclipse.jdt.core.dom.FieldDeclaration
+import org.eclipse.jdt.core.dom.MarkerAnnotation
 import org.eclipse.jdt.core.dom.MethodDeclaration
 import org.eclipse.jdt.core.dom.MethodInvocation
 import org.eclipse.jdt.core.dom.Modifier
@@ -18,29 +15,18 @@ import org.eclipse.jdt.core.dom.NameWrapper
 import org.eclipse.jdt.core.dom.TypeDeclaration
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement
-import org.eclipse.jdt.core.dom.rewrite.ASTRewrite
-import org.eclipse.jdt.core.dom.ChildPropertyDescriptor
 
 class ConvertingVisitor extends ASTVisitor {
-	new() {
-	}
-	
-	public ASTRewrite rw
-	override visit(CompilationUnit node) {
-		rw = ASTRewrite::create(node.AST)
-		true		
-	}
-	
+		
 	override visit(TypeDeclaration node) {
-		val modifiers = node.modifiers.map[it as Modifier]
+		val modifiers = node.modifiers.filter(typeof(Modifier))
 		node.modifiers.removeAll(modifiers.filter[public])
 		true
 	}
 
 	override visit(FieldDeclaration node) {
 		val modifiers = modifiers(node.modifiers)
-		val hasInitializer = !node.fragments.filter[it instanceof VariableDeclarationFragment].map[
-			it as VariableDeclarationFragment].filter[initializer != null && initializer?.toString.trim != 'null'].empty
+		val hasInitializer = !node.fragments.filter(typeof(VariableDeclarationFragment)).filter[initializer != null && initializer?.toString.trim != 'null'].empty
 		if (hasInitializer) {
 			replaceTypeWith(node, if(modifiers.filter[final].empty) 'var' else 'val');
 		}
@@ -60,8 +46,7 @@ class ConvertingVisitor extends ASTVisitor {
 		node.modifiers
 		val valOrVar = if(modifiers.filter[final].empty) 'var' else 'val'
 		val hasInitializer = !node.fragments
-			.filter[it instanceof VariableDeclarationFragment]
-			.map[it as VariableDeclarationFragment]
+			.filter(typeof(VariableDeclarationFragment))
 			.filter[initializer != null && initializer?.toString.trim != 'null']
 			.empty
 		node.modifiers.removeAll(modifiers.filter[final])
@@ -73,14 +58,8 @@ class ConvertingVisitor extends ASTVisitor {
 		true
 	}
 
-	override visit(Block node) {
-		println("------------------------")
-		node.accept(new DebugVisitor(""))
-		true
-	}
-
 	def modifiers(List<?> modifiers) {
-		modifiers.filter[it instanceof Modifier].map[it as Modifier]
+		modifiers.filter(typeof(Modifier))
 	}
 
 	def removeDefaultModifiers(BodyDeclaration node) {
@@ -91,9 +70,6 @@ class ConvertingVisitor extends ASTVisitor {
 	override visit(MethodInvocation node) {
 		if (node.expression?.toString == "System.out") {
 			if (node.name.toString.startsWith("print")) {
-				rw.set(node, MethodInvocation::NAME_PROPERTY, node.AST.newIfStatement() => [
-
-				], null)
 				node.expression.delete
 				return true
 			}
@@ -117,25 +93,17 @@ class ConvertingVisitor extends ASTVisitor {
 		}
 		true
 	}
-
-	override visit(ConditionalExpression node) {
-		val linp = node.locationInParent
-		val cpd = NameWrapper::newCDP(linp);
-		rw.set(node, cpd, 
-			node.AST.newBlock => [
-				statements.add(node.AST.newIfStatement)
-			], null
-		);
-		false
-	}
 	
 	override visit(MethodDeclaration node) {
 		val modifiers = modifiers(node.modifiers)
 		if (node.constructor) {
 			node.name = new NameWrapper(node.AST, "new")
-		} else {
+		} else {			
 			val ast = node.AST
-			var decl = 'def'
+			val overrideAnnotations = node.modifiers.filter(typeof(MarkerAnnotation)).filter[it.typeName.fullyQualifiedName == 'Override']
+			val isOverride = !overrideAnnotations.empty
+			node.modifiers.removeAll(overrideAnnotations)
+			var decl = if(isOverride) 'override' else 'def'			
 			if (!modifiers.filter[abstract].empty) {
 				decl = decl + ' ' + node.returnType2
 			}
@@ -156,7 +124,7 @@ class ConvertingVisitor extends ASTVisitor {
 	}
 
 	def getModifiers(MethodDeclaration node) {
-		node.modifiers.map[it as Modifier].filter[!it.public]
+		node.modifiers.filter(typeof(Modifier)).filter[!it.public]
 	}
 
 }

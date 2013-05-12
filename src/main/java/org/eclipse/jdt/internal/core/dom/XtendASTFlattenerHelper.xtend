@@ -44,9 +44,9 @@ class XtendASTFlattenerHelper {
 	def dispatch skipModifier(Modifier node, VariableDeclarationStatement parentNode) {
 		node.final
 	}
-//	def dispatch skipModifier(Modifier node, FieldDeclaration parentNode) {
-//		node.final
-//	}
+	def dispatch skipModifier(Modifier node, FieldDeclaration parentNode) {
+		node.final || node.private
+	}
 
 	def dispatch filterModForMethod(Modifier mod) {
 		!mod.public

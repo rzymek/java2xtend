@@ -22,8 +22,8 @@ class Java2Xtend {
 		parser.setSource(javaSrc.toCharArray);
 		val ast = parser.createAST(/*progress monitor*/null) as CompilationUnit
 //		ast.recordModifications
-//		val visitor = new ConvertingVisitor		
-//		ast.accept(visitor)
+		val visitor = new ConvertingVisitor		
+		ast.accept(visitor)
 				
 //		val xtend = new Document(javaSrc)
 //		val rw = visitor.rw //ast.rewrite(xtend, null)
