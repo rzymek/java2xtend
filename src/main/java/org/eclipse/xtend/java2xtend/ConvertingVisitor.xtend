@@ -97,29 +97,28 @@ class ConvertingVisitor extends ASTVisitor {
 						f.expression = ASTNode::copySubtree(node.AST, node.expression) as Expression
 						f.name = new NameWrapper(node.AST, newName) 
 					]
-				replaceNode(node.parent, node, newNode)
+				replaceNode(node, newNode)
 			}
 			return true
 		}
 		true
 	}
 	
-	def replaceNode(ASTNode parent, MethodInvocation node, FieldAccess access) {
+	def replaceNode(ASTNode node, Expression exp) {
+		val parent = node.parent
 		val location = node.locationInParent
 		if (location instanceof ChildListPropertyDescriptor && location.id == "arguments") {
 			val parentCall = parent as MethodInvocation
 			val index = parentCall.arguments.indexOf(node)
 			if (index >= 0) {
-				parentCall.arguments.set(index, access)
-				if (access.expression instanceof MethodInvocation) {
-					visit(access.expression as MethodInvocation)
-				}
+				parentCall.arguments.set(index, exp)
 			} else {
-				throw new RuntimeException("Unable to replace " + node + " in " + parent + " for " + access)
+				throw new RuntimeException("Unable to replace " + node + " in " + parent + " for " + exp)
 			}
 		} else {
-			parent.setStructuralProperty(location, access)
+			parent.setStructuralProperty(location, exp)
 		}
+		exp.accept(this)
 	}
 
 	override visit(MethodDeclaration node) {
