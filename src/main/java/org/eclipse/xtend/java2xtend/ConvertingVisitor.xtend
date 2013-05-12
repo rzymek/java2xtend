@@ -15,7 +15,9 @@ import org.eclipse.jdt.core.dom.MethodInvocation
 import org.eclipse.jdt.core.dom.Modifier
 import org.eclipse.jdt.core.dom.NameWrapper
 import org.eclipse.jdt.core.dom.PrimitiveType
+import org.eclipse.jdt.core.dom.SimpleName
 import org.eclipse.jdt.core.dom.TypeDeclaration
+import org.eclipse.jdt.core.dom.TypeLiteral
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement
 
@@ -75,7 +77,16 @@ class ConvertingVisitor extends ASTVisitor {
 		val modifiers = modifiers(node.modifiers)
 		node.modifiers.removeAll(modifiers.filter[private || final])
 	}
+	
 
+	override visit(TypeLiteral qname) {
+		val methodCall = qname.AST.newMethodInvocation
+		methodCall.name = qname.AST.newSimpleName("typeof")
+		methodCall.arguments.add(qname.AST.newSimpleName(qname.type.toString))
+		replaceNode(qname, methodCall)
+		false
+	}
+	
 	override visit(MethodInvocation node) {
 		if (node.expression?.toString == "System.out") {
 			if (node.name.toString.startsWith("print")) {
