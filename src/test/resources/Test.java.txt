@@ -15,19 +15,19 @@ public abstract class Test implements Serializable {
 	}
 
 	public void foo() {
-		Double d;
+		Double d = 4.0, d2;
 		final String x = "abc";
 		List<Integer> list = Arrays.asList(1, 2, 3, 4, 5);
 		int i;
 		for (Integer integer : list) {
 			System.out.println(integer);
-			test(integer);			
+			test(integer);
 		}
 		double f = x.equals("x") ? 1.0 : 2.0;
 		boolean e = x.isEmpty();
-		System.out.getClass().getPackage().getName();				
+		System.out.getClass().getPackage().getName();
 	}
-	
+
 	protected abstract void test(int i);
 
 	@Override

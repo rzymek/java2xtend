@@ -7,12 +7,14 @@ import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ConditionalExpression;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.Modifier;
+import org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
 import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.TypeParameter;
+import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
+import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 
-@SuppressWarnings("rawtypes")
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class XtendASTFlattener extends NaiveASTFlattener {
 	private XtendASTFlattenerHelper helper = new XtendASTFlattenerHelper();
 	
@@ -25,6 +27,32 @@ public class XtendASTFlattener extends NaiveASTFlattener {
 			p.accept(this);
 			this.buffer.append(" ");//$NON-NLS-1$
 		}
+	}
+	
+	public boolean visit(VariableDeclarationStatement node) {
+		printIndent();
+		if (node.getAST().apiLevel() >= AST.JLS3) {
+			printModifiers(node.modifiers());
+		}
+		if(helper.contains(node.modifiers(), ModifierKeyword.FINAL_KEYWORD)) {
+			this.buffer.append("val ");
+		}else{
+			this.buffer.append("var ");
+		}
+		if(!helper.allHaveInitializers(node)) {
+			node.getType().accept(this);
+		}
+		
+		this.buffer.append(" ");//$NON-NLS-1$
+		for (Iterator it = node.fragments().iterator(); it.hasNext(); ) {
+			VariableDeclarationFragment f = (VariableDeclarationFragment) it.next();
+			f.accept(this);
+			if (it.hasNext()) {
+				this.buffer.append(", ");//$NON-NLS-1$
+			}
+		}
+		this.buffer.append(";\n");//$NON-NLS-1$
+		return false;
 	}
 
 	public boolean visit(ConditionalExpression node) {
@@ -43,7 +71,7 @@ public class XtendASTFlattener extends NaiveASTFlattener {
 		}
 		printIndent();
 		if (node.getAST().apiLevel() >= AST.JLS3) {
-			printModifiers(helper.filterForMethod(node.modifiers()));
+			printModifiers(node.modifiers());
 			if (!node.typeParameters().isEmpty()) {
 				this.buffer.append("<");//$NON-NLS-1$
 				for (Iterator<?> it = node.typeParameters().iterator(); it.hasNext(); ) {
