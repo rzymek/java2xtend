@@ -1,38 +1,18 @@
 package org.eclipse.xtend.java2xtend
 
-import java.util.List
+import com.google.common.base.Optional
 import org.eclipse.jdt.core.dom.ASTNode
 import org.eclipse.jdt.core.dom.ASTVisitor
-import org.eclipse.jdt.core.dom.BodyDeclaration
+import org.eclipse.jdt.core.dom.ChildListPropertyDescriptor
+import org.eclipse.jdt.core.dom.CustomInfixExpression
 import org.eclipse.jdt.core.dom.EnhancedForStatement
 import org.eclipse.jdt.core.dom.Expression
-import org.eclipse.jdt.core.dom.FieldDeclaration
-import org.eclipse.jdt.core.dom.MarkerAnnotation
-import org.eclipse.jdt.core.dom.MethodDeclaration
+import org.eclipse.jdt.core.dom.InfixExpression
 import org.eclipse.jdt.core.dom.MethodInvocation
-import org.eclipse.jdt.core.dom.Modifier
 import org.eclipse.jdt.core.dom.NameWrapper
-import org.eclipse.jdt.core.dom.TypeDeclaration
-import org.eclipse.jdt.core.dom.VariableDeclarationFragment
-import org.eclipse.jdt.core.dom.VariableDeclarationStatement
+import org.eclipse.jdt.core.dom.TypeLiteral
 
 class ConvertingVisitor extends ASTVisitor {
-		
-	override visit(TypeDeclaration node) {
-		val modifiers = node.modifiers.filter(typeof(Modifier))
-		node.modifiers.removeAll(modifiers.filter[public])
-		true
-	}
-
-	override visit(FieldDeclaration node) {
-		val modifiers = modifiers(node.modifiers)
-		val hasInitializer = !node.fragments.filter(typeof(VariableDeclarationFragment)).filter[initializer != null && initializer?.toString.trim != 'null'].empty
-		if (hasInitializer) {
-			replaceTypeWith(node, if(modifiers.filter[final].empty) 'var' else 'val');
-		}
-		removeDefaultModifiers(node)
-		false
-	}
 
 	override visit(EnhancedForStatement node) {
 		val ast = node.AST
@@ -40,33 +20,14 @@ class ConvertingVisitor extends ASTVisitor {
 		true
 	}
 
-	override visit(VariableDeclarationStatement node) {
-		val ast = node.AST
-		val modifiers = modifiers(node.modifiers)
-		node.modifiers
-		val valOrVar = if(modifiers.filter[final].empty) 'var' else 'val'
-		val hasInitializer = !node.fragments
-			.filter(typeof(VariableDeclarationFragment))
-			.filter[initializer != null && initializer?.toString.trim != 'null']
-			.empty
-		node.modifiers.removeAll(modifiers.filter[final])
-		if (hasInitializer) {
-			node.type = ast.newSimpleType(ast.newName(valOrVar))
-		} else {
-			node.setType(ast.newSimpleType(new NameWrapper(ast, valOrVar + ' ' + node.type)))
-		}
-		true
+	override visit(TypeLiteral qname) {
+		val methodCall = qname.AST.newMethodInvocation
+		methodCall.name = qname.AST.newSimpleName("typeof")
+		methodCall.arguments.add(qname.AST.newSimpleName(qname.type.toString))
+		replaceNode(qname, methodCall)
+		false
 	}
-
-	def modifiers(List<?> modifiers) {
-		modifiers.filter(typeof(Modifier))
-	}
-
-	def removeDefaultModifiers(BodyDeclaration node) {
-		val modifiers = modifiers(node.modifiers)
-		node.modifiers.removeAll(modifiers.filter[private || final])
-	}
-
+	
 	override visit(MethodInvocation node) {
 		if (node.expression?.toString == "System.out") {
 			if (node.name.toString.startsWith("print")) {
@@ -74,61 +35,70 @@ class ConvertingVisitor extends ASTVisitor {
 				return true
 			}
 		}
-		node.expression?.accept(this)
-		val getterPrefixes = #['is','get','has']
 		
+		if (node.name.identifier == 'equals' && node.arguments.size === 1) {
+			val newInfix = new CustomInfixExpression(node.AST, '==')
+			newInfix.leftOperand = ASTNode::copySubtree(node.AST, node.expression) as Expression
+			newInfix.rightOperand = ASTNode::copySubtree(node.AST, node.arguments.get(0) as ASTNode) as Expression
+			replaceNode(node, newInfix)
+			return false
+		}
+		
+		val getterPrefixes = #['is','get','has']
+
 		if (node.arguments.empty) {
 			val name = node.name;
 			val identifier = name.identifier
-			val matchingPrefix = getterPrefixes.findFirst [
+			val newIdentifier = Optional::fromNullable(getterPrefixes.filter [
 				identifier.startsWith(it)
-			]
+			].map[
+				identifier.substring(it.length).toFirstLower
+			].head)
+						
+			val newName = newIdentifier.or(identifier)
 			
-			node.parent.setStructuralProperty(node.locationInParent, node.AST.newFieldAccess() => [f|					
-				f.expression = ASTNode::copySubtree(node.AST, node.expression) as Expression
-				val newName = if (matchingPrefix != null) {
-					identifier.substring(matchingPrefix.length).toFirstLower
-				}else{
-					identifier
-				}
-				f.name = new NameWrapper(node.AST, newName) 
-			])
+			val newNode = if (node.expression != null) {
+				node.AST.newFieldAccess() => [f|
+					f.expression = ASTNode::copySubtree(node.AST, node.expression) as Expression
+					f.name = new NameWrapper(node.AST, newName)
+				]
+			} else {
+				// handle printIndent() like calls, which converted to 'printIndent'
+				node.AST.newSimpleName(newName)
+			}
+			replaceNode(node, newNode)
 			return true
 		}
 		true
 	}
 	
-	override visit(MethodDeclaration node) {
-		val modifiers = modifiers(node.modifiers)
-		if (node.constructor) {
-			node.name = new NameWrapper(node.AST, "new")
-		} else {			
-			val ast = node.AST
-			val overrideAnnotations = node.modifiers.filter(typeof(MarkerAnnotation)).filter[it.typeName.fullyQualifiedName == 'Override']
-			val isOverride = !overrideAnnotations.empty
-			node.modifiers.removeAll(overrideAnnotations)
-			var decl = if(isOverride) 'override' else 'def'			
-			if (!modifiers.filter[abstract].empty) {
-				decl = decl + ' ' + node.returnType2
-			}
-			node.returnType2 = ast.newSimpleType(new NameWrapper(ast, decl))
+	override visit(InfixExpression exp) {
+		if (exp.operator.toString == '==') {
+			val newInfix = new CustomInfixExpression(exp.AST, '===')
+			newInfix.leftOperand = ASTNode::copySubtree(exp.AST, exp.leftOperand) as Expression
+			newInfix.rightOperand = ASTNode::copySubtree(exp.AST, exp.rightOperand) as Expression
+			replaceNode(exp, newInfix)
+			false
+		} else {
+			true
 		}
-		node.modifiers.removeAll(modifiers.filter[public])
-		true
-	}
-
-	def replaceTypeWith(FieldDeclaration node, String valOrVar) {
-		val ast = node.getAST()
-		val type = ast.newSimpleType(ast.newName(valOrVar))
-		node.setType(type);
-	}
-
-	def boolean isAbstract(Iterable<Modifier> modifiers) {
-		!modifiers.filter[it.abstract].empty
-	}
-
-	def getModifiers(MethodDeclaration node) {
-		node.modifiers.filter(typeof(Modifier)).filter[!it.public]
+	} 
+	
+	private def replaceNode(ASTNode node, Expression exp) {
+		val parent = node.parent
+		val location = node.locationInParent
+		if (location instanceof ChildListPropertyDescriptor && location.id == "arguments") {
+			val parentCall = parent as MethodInvocation
+			val index = parentCall.arguments.indexOf(node)
+			if (index >= 0) {
+				parentCall.arguments.set(index, exp)
+			} else {
+				throw new RuntimeException("Unable to replace " + node + " in " + parent + " for " + exp)
+			}
+		} else {
+			parent.setStructuralProperty(location, exp)
+		}
+		exp.accept(this)
 	}
 
 }
