@@ -27,6 +27,25 @@ public abstract class Test implements Serializable {
 		boolean e = x.isEmpty();
 		System.out.getClass().getPackage().getName();
 		this.foo();
+		System.out.println("Print our self: " + this.toString());
+	}
+
+	boolean isOnTheListByReference(String str) {
+		for (String s : otherList) {
+			if (s == str) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	boolean isOnTheList(String str) {
+		for (String s : otherList) {
+			if (s.equals(str)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	protected abstract void test(int i);
@@ -35,4 +54,5 @@ public abstract class Test implements Serializable {
 	public String toString() {
 		return "the test";
 	}
+
 }
