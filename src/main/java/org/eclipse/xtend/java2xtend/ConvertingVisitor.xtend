@@ -85,20 +85,24 @@ class ConvertingVisitor extends ASTVisitor {
 	} 
 	
 	private def replaceNode(ASTNode node, Expression exp) {
-		val parent = node.parent
-		val location = node.locationInParent
-		if (location instanceof ChildListPropertyDescriptor && location.id == "arguments") {
-			val parentCall = parent as MethodInvocation
-			val index = parentCall.arguments.indexOf(node)
-			if (index >= 0) {
-				parentCall.arguments.set(index, exp)
+		try{
+			val parent = node.parent
+			val location = node.locationInParent
+			if (location instanceof ChildListPropertyDescriptor && location.id == "arguments") {
+				val parentCall = parent as MethodInvocation
+				val index = parentCall.arguments.indexOf(node)
+				if (index >= 0) {
+					parentCall.arguments.set(index, exp)
+				} else {
+					throw new RuntimeException("Unable to replace " + node + " in " + parent + " for " + exp)
+				}
 			} else {
-				throw new RuntimeException("Unable to replace " + node + " in " + parent + " for " + exp)
+				parent.setStructuralProperty(location, exp)
 			}
-		} else {
-			parent.setStructuralProperty(location, exp)
+			exp.accept(this)		
+		}catch(Exception ex){
+			throw new RuntimeException("Failed to replace node: "+node+" with "+exp, ex)
 		}
-		exp.accept(this)
 	}
 
 }
