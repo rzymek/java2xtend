@@ -7,6 +7,7 @@ import org.eclipse.jdt.core.dom.MarkerAnnotation
 import org.eclipse.jdt.core.dom.MethodDeclaration
 import org.eclipse.jdt.core.dom.Modifier
 import org.eclipse.jdt.core.dom.NullLiteral
+import org.eclipse.jdt.core.dom.SingleVariableDeclaration
 import org.eclipse.jdt.core.dom.TypeDeclaration
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement
@@ -36,6 +37,9 @@ class XtendASTFlattenerHelper {
 	}
 	def dispatch skipModifier(Modifier node, TypeDeclaration parentNode) {
 		node.public
+	}
+	def dispatch skipModifier(Modifier node, SingleVariableDeclaration parentNode) {
+		node.final
 	}
 	def dispatch skipModifier(Modifier node, VariableDeclarationStatement parentNode) {
 		node.final || node.private

@@ -10,7 +10,7 @@ public abstract class Test implements Serializable {
 	private List<String> list = null;
 	private List<String> otherList = new ArrayList<String>();
 
-	public Test(List<String> list) {
+	public Test(final List<String> list) {
 		this.list = list;
 	}
 
