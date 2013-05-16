@@ -1,6 +1,7 @@
 package org.eclipse.xtend.java2xtend
 
 import com.google.common.base.Optional
+import java.util.List
 import org.eclipse.jdt.core.dom.ASTNode
 import org.eclipse.jdt.core.dom.ASTVisitor
 import org.eclipse.jdt.core.dom.ChildListPropertyDescriptor
@@ -11,6 +12,7 @@ import org.eclipse.jdt.core.dom.InfixExpression
 import org.eclipse.jdt.core.dom.MethodInvocation
 import org.eclipse.jdt.core.dom.NameWrapper
 import org.eclipse.jdt.core.dom.TypeLiteral
+import java.beans.Introspector
 
 class ConvertingVisitor extends ASTVisitor {
 
@@ -52,7 +54,7 @@ class ConvertingVisitor extends ASTVisitor {
 			val newIdentifier = Optional::fromNullable(getterPrefixes.filter [
 				identifier.startsWith(it)
 			].map[
-				identifier.substring(it.length).toFirstLower
+				Introspector::decapitalize(identifier.substring(it.length))
 			].head)
 						
 			val newName = newIdentifier.or(identifier)
@@ -84,24 +86,37 @@ class ConvertingVisitor extends ASTVisitor {
 		}
 	} 
 	
-	private def replaceNode(ASTNode node, Expression exp) {
-		try{
-			val parent = node.parent
-			val location = node.locationInParent
-			if (location instanceof ChildListPropertyDescriptor && location.id == "arguments") {
-				val parentCall = parent as MethodInvocation
-				val index = parentCall.arguments.indexOf(node)
-				if (index >= 0) {
-					parentCall.arguments.set(index, exp)
-				} else {
-					throw new RuntimeException("Unable to replace " + node + " in " + parent + " for " + exp)
+	
+	def replaceNode(ASTNode node, Expression exp) {
+		val parent = node.parent
+		val location = node.locationInParent
+		try{			
+			if (location instanceof ChildListPropertyDescriptor) {
+				val method = parent.class.getMethod(location.id)
+				val list = method.invoke(parent) as List<Object>
+				val index = list.indexOf(node)
+				if(index >= 0){
+					list.set(index, exp);
+				}else{
+					throw new IllegalArgumentException(node +" not found in "+list+" ("+index+")")
 				}
+//			if (location instanceof ChildListPropertyDescriptor) {
+//				val rewrite = ASTRewrite::create(node.AST)
+//				val rw = rewrite.getListRewrite(parent, location as ChildListPropertyDescriptor)
+//				rw.replace(node, exp, null);
+////				val parentCall = parent as MethodInvocation
+////				val index = parentCall.arguments.indexOf(node)
+////				if (index >= 0) {
+////					parentCall.arguments.set(index, exp)
+////				} else {
+////					throw new RuntimeException("Unable to replace " + node + " in " + parent + " for " + exp)
+////				}
 			} else {
 				parent.setStructuralProperty(location, exp)
 			}
 			exp.accept(this)		
 		}catch(Exception ex){
-			throw new RuntimeException("Failed to replace node: "+node+" with "+exp, ex)
+			throw new RuntimeException("Failed to replace node: "+node+" with "+exp+" in "+parent, ex)
 		}
 	}
 

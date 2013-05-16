@@ -6,10 +6,13 @@ import org.junit.Test
 import static org.junit.Assert.*
 
 class Java2XtendTest {
-
 	@Test
 	def void convertTest() {
 		convertResource("/Test.java.txt")
+	}
+	@Test
+	def void bug2() {
+		convertResource("/Bug2.java.txt")
 	}
 	@Test
 	def void convertHelloWorld() {
