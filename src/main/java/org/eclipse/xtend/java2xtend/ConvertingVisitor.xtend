@@ -66,7 +66,7 @@ class ConvertingVisitor extends ASTVisitor {
 				]
 			} else {
 				// handle printIndent() like calls, which converted to 'printIndent'
-				node.AST.newSimpleName(newName)
+				new NameWrapper(node.AST, newName)
 			}
 			replaceNode(node, newNode)
 			return true

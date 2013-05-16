@@ -11,6 +11,10 @@ class Java2XtendTest {
 		convertResource("/Test.java.txt")
 	}
 	@Test
+	def void bug10() {
+		convertResource("/Bug10.txt")
+	}
+	@Test
 	def void bug7() {
 		convertResource("/Bug7.txt")
 	}
