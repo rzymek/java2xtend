@@ -31,10 +31,14 @@ class ConvertingVisitor extends ASTVisitor {
 	}
 	
 	private def toFieldAccess(MethodInvocation node, String newName) {
-		node.AST.newFieldAccess() => [ f |
-			f.expression = ASTNode::copySubtree(node.AST, node.expression) as Expression
-			f.name = new NameWrapper(node.AST, newName)
-		]
+		if (node.expression == null) {
+			new NameWrapper(node.AST, newName)
+		} else {
+			node.AST.newFieldAccess() => [ f |
+				f.expression = ASTNode::copySubtree(node.AST, node.expression) as Expression
+				f.name = new NameWrapper(node.AST, newName)
+			]
+		}
 	}
 	
 	override visit(MethodInvocation node) {
@@ -66,12 +70,7 @@ class ConvertingVisitor extends ASTVisitor {
 						
 			val newName = newIdentifier.or(identifier)
 			
-			val newNode = if (node.expression != null) {
-				toFieldAccess(node, newName)
-			} else {
-				// handle printIndent() like calls, which converted to 'printIndent'
-				new NameWrapper(node.AST, newName)
-			}
+			val newNode = toFieldAccess(node, newName)
 			replaceNode(node, newNode)
 			return true
 		}else if(node.arguments.size == 1 && identifier.startsWith("set")) {
