@@ -12,7 +12,7 @@ class Java2Xtend {
 		parser.setSource(javaSrc.toCharArray)
 		val ast = parser.createAST(null /*progress monitor*/) as CompilationUnit
 		val visitor = new ConvertingVisitor
-//		ast.accept(new DebugVisitor(''))
+		ast.accept(new DebugVisitor(''))
 		ast.accept(visitor)
 		
 		val printer = new XtendASTFlattener

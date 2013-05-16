@@ -30,6 +30,13 @@ class ConvertingVisitor extends ASTVisitor {
 		false
 	}
 	
+	private def toFieldAccess(MethodInvocation node, String newName) {
+		node.AST.newFieldAccess() => [ f |
+			f.expression = ASTNode::copySubtree(node.AST, node.expression) as Expression
+			f.name = new NameWrapper(node.AST, newName)
+		]
+	}
+	
 	override visit(MethodInvocation node) {
 		if (node.expression?.toString == "System.out") {
 			if (node.name.toString.startsWith("print")) {
@@ -48,9 +55,9 @@ class ConvertingVisitor extends ASTVisitor {
 		
 		val getterPrefixes = #['is','get','has']
 
+		val name = node.name;
+		val identifier = name.identifier
 		if (node.arguments.empty) {
-			val name = node.name;
-			val identifier = name.identifier
 			val newIdentifier = Optional::fromNullable(getterPrefixes.filter [
 				identifier.startsWith(it)
 			].map[
@@ -60,34 +67,38 @@ class ConvertingVisitor extends ASTVisitor {
 			val newName = newIdentifier.or(identifier)
 			
 			val newNode = if (node.expression != null) {
-				node.AST.newFieldAccess() => [f|
-					f.expression = ASTNode::copySubtree(node.AST, node.expression) as Expression
-					f.name = new NameWrapper(node.AST, newName)
-				]
+				toFieldAccess(node, newName)
 			} else {
 				// handle printIndent() like calls, which converted to 'printIndent'
 				new NameWrapper(node.AST, newName)
 			}
 			replaceNode(node, newNode)
 			return true
+		}else if(node.arguments.size == 1 && identifier.startsWith("set")) {
+			val newName = Introspector::decapitalize(identifier.substring("set".length))
+			val newNode = node.AST.newAssignment() => [a|
+				a.leftHandSide = toFieldAccess(node, newName)
+				a.rightHandSide = ASTNode::copySubtree(node.AST, node.arguments.get(0) as ASTNode) as Expression
+			]
+			replaceNode(node, newNode)
 		}
 		true
 	}
 	
 	override visit(InfixExpression exp) {
-		if (exp.operator.toString == '==') {
-			val newInfix = new CustomInfixExpression(exp.AST, '===')
-			newInfix.leftOperand = ASTNode::copySubtree(exp.AST, exp.leftOperand) as Expression
-			newInfix.rightOperand = ASTNode::copySubtree(exp.AST, exp.rightOperand) as Expression
-			replaceNode(exp, newInfix)
-			false
-		} else {
-			true
+		switch exp.operator {
+			case InfixExpression$Operator::EQUALS: {
+				val newInfix = new CustomInfixExpression(exp.AST, '===')
+				newInfix.leftOperand = ASTNode::copySubtree(exp.AST, exp.leftOperand) as Expression
+				newInfix.rightOperand = ASTNode::copySubtree(exp.AST, exp.rightOperand) as Expression
+				replaceNode(exp, newInfix)
+			}
 		}
+		true
 	} 
 	
 	
-	def replaceNode(ASTNode node, Expression exp) {
+	private def replaceNode(ASTNode node, Expression exp) {
 		val parent = node.parent
 		val location = node.locationInParent
 		try{			
