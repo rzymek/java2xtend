@@ -92,6 +92,9 @@ class ConvertingVisitor extends ASTVisitor {
 		val location = node.locationInParent
 		try{			
 			if (location instanceof ChildListPropertyDescriptor) {
+				// There's a convention in the AST classes:
+				// For a ChildListPropertyDescriptor.id string value there's a 
+				// corresponding no-arg method for retrieving the list eg. MethodInvocation.arguments().
 				val method = parent.class.getMethod(location.id)
 				val list = method.invoke(parent) as List<Object>
 				val index = list.indexOf(node)
@@ -100,17 +103,6 @@ class ConvertingVisitor extends ASTVisitor {
 				}else{
 					throw new IllegalArgumentException(node +" not found in "+list+" ("+index+")")
 				}
-//			if (location instanceof ChildListPropertyDescriptor) {
-//				val rewrite = ASTRewrite::create(node.AST)
-//				val rw = rewrite.getListRewrite(parent, location as ChildListPropertyDescriptor)
-//				rw.replace(node, exp, null);
-////				val parentCall = parent as MethodInvocation
-////				val index = parentCall.arguments.indexOf(node)
-////				if (index >= 0) {
-////					parentCall.arguments.set(index, exp)
-////				} else {
-////					throw new RuntimeException("Unable to replace " + node + " in " + parent + " for " + exp)
-////				}
 			} else {
 				parent.setStructuralProperty(location, exp)
 			}
