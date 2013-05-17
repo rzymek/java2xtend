@@ -69,6 +69,7 @@
 					<execution>
 						<goals>
 							<goal>compile</goal>
+							<goal>testCompile</goal>
 						</goals>
 						<configuration>
 							<outputDirectory>${basedir}/src/main/xtend-gen</outputDirectory>
