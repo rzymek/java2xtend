@@ -4,6 +4,15 @@ java2xtend
 The aim it to aid in converting pure Java code to Xtend sources.
 Uses Eclipse JDT AST for Java parsing.
 
+You can try it online at http://www.j2x.cloudbees.net/
+
+The comverter also tries to Xtend'ify Java constructs like:
+* `obj1.equals(obj2)` -> `obj1 == obj2`
+* `obj1 == obj2` -> `obj1 === obj2`
+* `System.out.println(...)` -> `println(...)`
+* `private final String v="abc";` -> `val v="abc"`
+* `person.setName(other.getPerson().getName);` -> `person.name = other.person.name`
+
 Example 1:
 
 	public class HelloWorld {
