@@ -1,11 +1,19 @@
 package org.eclipse.xtend.java2xtend
 
 import org.apache.commons.io.IOUtils
+import org.eclipse.jdt.core.dom.CompilationUnit
 import org.junit.Test
 
 import static org.junit.Assert.*
-import org.junit.Before
 
+class DebugJava2Xtend extends Java2Xtend {
+	
+	override protected process(CompilationUnit ast) {
+		ast.accept(new DebugVisitor(''))
+		super.process(ast)
+	}
+	
+}
 class Java2XtendTest {
 	@Test
 	def void SingleQuotes11() {
