@@ -13,6 +13,7 @@ import org.eclipse.jdt.core.dom.MethodInvocation
 import org.eclipse.jdt.core.dom.NameWrapper
 import org.eclipse.jdt.core.dom.TypeLiteral
 import java.beans.Introspector
+import static extension java.lang.Character.*;
 
 class ConvertingVisitor extends ASTVisitor {
 
@@ -63,7 +64,9 @@ class ConvertingVisitor extends ASTVisitor {
 		val identifier = name.identifier
 		if (node.arguments.empty) {
 			val newIdentifier = Optional::fromNullable(getterPrefixes.filter [
-				identifier.startsWith(it)
+				identifier.startsWith(it) 
+					&& identifier.length > it.length 
+					&& identifier.charAt(it.length).upperCase
 			].map[
 				Introspector::decapitalize(identifier.substring(it.length))
 			].head)

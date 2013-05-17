@@ -29,6 +29,10 @@ class Java2XtendTest {
 		convertResource("/Bug10.txt")
 	}
 	@Test
+	def void bug12() {
+		convertResource("/Bug12.txt")
+	}
+	@Test
 	def void bug7() {
 		convertResource("/Bug7.txt")
 	}
@@ -55,7 +59,7 @@ class Java2XtendTest {
 	
 	def convertResource(String name) {
 		val java = IOUtils::toString(class.getResourceAsStream(name))
-		val j2x = new Java2Xtend
+		val j2x = new DebugJava2Xtend
 		val xtend = j2x.toXtend(java)
 		assertNotNull(xtend)
 		println('\n\n--------------------------------------------------')
