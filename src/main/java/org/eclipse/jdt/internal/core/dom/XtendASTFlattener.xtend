@@ -18,6 +18,7 @@ import org.eclipse.jdt.core.dom.PackageDeclaration
 import org.eclipse.jdt.core.dom.ReturnStatement
 import org.eclipse.jdt.core.dom.Type
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement
+import org.eclipse.jdt.core.dom.StringLiteral
 
 class XtendASTFlattener extends NaiveASTFlattener {
 	var helper = new XtendASTFlattenerHelper();
@@ -27,6 +28,29 @@ class XtendASTFlattener extends NaiveASTFlattener {
 			it.accept(this);
 			this.buffer.append(" ");
 		]
+	}
+
+	def int count(String s, char c) {
+		var num = 0
+		for (i : 0 ..< s.length) {
+			if (s.charAt(i) == c)
+				num = num + 1
+		}
+		num
+	}
+
+	override visit(StringLiteral node) {
+		val literal = node.literalValue
+		val countSingle = literal.count("'")
+		val countDouble = literal.count('"')
+		if(countSingle <= countDouble) {
+			val v = literal.replaceAll("'","\\\\'")
+			this.buffer.append("'"+v+"'");			
+		}else{
+			val v = literal.replaceAll('"', "\\\\")
+			this.buffer.append('"'+v+'"');						
+		}
+		false
 	}
 
 	override visit(PackageDeclaration node) {

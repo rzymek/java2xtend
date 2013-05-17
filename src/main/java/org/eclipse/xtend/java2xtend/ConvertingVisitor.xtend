@@ -54,7 +54,7 @@ class ConvertingVisitor extends ASTVisitor {
 			newInfix.leftOperand = ASTNode::copySubtree(node.AST, node.expression) as Expression
 			newInfix.rightOperand = ASTNode::copySubtree(node.AST, node.arguments.get(0) as ASTNode) as Expression
 			replaceNode(node, newInfix)
-			return false
+			return true
 		}
 		
 		val getterPrefixes = #['is','get','has']

@@ -4,8 +4,14 @@ import org.apache.commons.io.IOUtils
 import org.junit.Test
 
 import static org.junit.Assert.*
+import org.junit.Before
 
 class Java2XtendTest {
+	@Test
+	def void SingleQuotes11() {
+		convertResource("/SingleQuotes11.java.txt")
+	}
+	
 	@Test
 	def void convertTest() {
 		convertResource("/Test.java.txt")
