@@ -9,11 +9,6 @@ class NameWrapper extends SimpleName {
 		super(ast)
 		internalSetIdentifier(string)
 	}
-	static def newCDP(StructuralPropertyDescriptor desc) {
-		val cpd = desc as ChildPropertyDescriptor
-		new ChildPropertyDescriptor(typeof(Statement), desc.id, typeof(Expression), false, false);
-//		cpd
-	}
 	
 	override clone0(AST target) {
 		new NameWrapper(target, identifier) => [result|			
