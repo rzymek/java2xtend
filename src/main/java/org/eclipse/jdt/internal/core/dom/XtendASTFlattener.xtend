@@ -10,15 +10,18 @@ import org.eclipse.jdt.core.dom.CustomInfixExpression
 import org.eclipse.jdt.core.dom.EmptyStatement
 import org.eclipse.jdt.core.dom.ExpressionStatement
 import org.eclipse.jdt.core.dom.FieldDeclaration
+import org.eclipse.jdt.core.dom.ForStatement
 import org.eclipse.jdt.core.dom.ImportDeclaration
 import org.eclipse.jdt.core.dom.InfixExpression
 import org.eclipse.jdt.core.dom.MethodDeclaration
 import org.eclipse.jdt.core.dom.Modifier$ModifierKeyword
 import org.eclipse.jdt.core.dom.PackageDeclaration
 import org.eclipse.jdt.core.dom.ReturnStatement
-import org.eclipse.jdt.core.dom.Type
-import org.eclipse.jdt.core.dom.VariableDeclarationStatement
 import org.eclipse.jdt.core.dom.StringLiteral
+import org.eclipse.jdt.core.dom.Type
+import org.eclipse.jdt.core.dom.VariableDeclarationExpression
+import org.eclipse.jdt.core.dom.VariableDeclarationFragment
+import org.eclipse.jdt.core.dom.VariableDeclarationStatement
 
 class XtendASTFlattener extends NaiveASTFlattener {
 	var helper = new XtendASTFlattenerHelper();
@@ -30,7 +33,7 @@ class XtendASTFlattener extends NaiveASTFlattener {
 		]
 	}
 
-	def int count(String s, char c) {
+	private def int count(String s, char c) {
 		var num = 0
 		for (i : 0 ..< s.length) {
 			if (s.charAt(i) == c)
@@ -38,6 +41,32 @@ class XtendASTFlattener extends NaiveASTFlattener {
 		}
 		num
 	}
+	
+	  override visit(ForStatement node) {
+    	val decl = node.initializers.filter(typeof(VariableDeclarationExpression)).head
+    	if(decl == null) return super.visit(node)
+    	val fragments = decl.fragments.filter(typeof(VariableDeclarationFragment)).toList
+    	if(fragments.size != 1) return super.visit(node)    	
+    	var fragment = fragments.filter(typeof(VariableDeclarationFragment)).head
+    	var expr = node.expression
+    	if(expr == null || !(expr instanceof InfixExpression)) return super.visit(node)
+    	var infix = expr as InfixExpression
+    	printIndent
+    	this.buffer.append('for (')
+    	this.buffer.append(fragment.name)
+		this.buffer.append(': ')
+		fragment.initializer.accept(this)
+		this.buffer.append('..')
+		//TODO: 
+		// '<' = '..<'
+		// '<=' = '..'
+		//else -> unsupported
+		this.buffer.append(infix.operator)
+		infix.rightOperand.accept(this)
+		this.buffer.append(') ')	
+	    node.body.accept(this)
+    	false
+  }
 
 	override visit(StringLiteral node) {
 		val literal = node.literalValue

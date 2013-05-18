@@ -1,0 +1,21 @@
+public class ForLoop {
+	void foo() {
+		for (int i = 0; i < 10; i++) {
+			System.out.println(i);
+		}
+		for (int i = 0, y=0; i < 10; i++) {
+			System.out.println(i);
+		}
+		int i;
+		for(i=0;i<10;i++) {
+			System.out.println(i);			
+		}
+		int j;
+		for(i=0,j=2;i<10;i++) {
+			System.out.println(i);			
+		}
+		for (int x = 0; x <= 10; x+=2) {
+			System.out.println(i);
+		}
+	}
+}
