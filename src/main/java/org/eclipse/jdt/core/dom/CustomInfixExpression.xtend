@@ -12,4 +12,10 @@ class CustomInfixExpression extends InfixExpression {
 		this._customOperator = customOperator
 	}
 	
+	override clone0(AST target) {
+		new CustomInfixExpression(target, customOperator) => [
+			setSourceRange(getStartPosition(), getLength());
+		]
+	}
+	
 }
