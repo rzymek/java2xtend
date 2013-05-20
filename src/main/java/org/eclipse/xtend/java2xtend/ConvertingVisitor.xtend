@@ -37,7 +37,7 @@ class ConvertingVisitor extends ASTVisitor {
 			new NameWrapper(node.AST, newName)
 		} else {
 			node.AST.newFieldAccess() => [ f |
-				f.expression = copySubtree(node.AST, node.expression) as Expression
+				f.expression = node.expression.copy
 				f.name = new NameWrapper(node.AST, newName)
 			]
 		}
@@ -53,8 +53,8 @@ class ConvertingVisitor extends ASTVisitor {
 		
 		if (node.name.identifier == 'equals' && node.arguments.size === 1) {
 			val newInfix = new CustomInfixExpression(node.AST, '==')
-			newInfix.leftOperand = copySubtree(node.AST, node.expression) as Expression
-			newInfix.rightOperand = copySubtree(node.AST, node.arguments.get(0) as ASTNode) as Expression
+			newInfix.leftOperand = node.expression.copy
+			newInfix.rightOperand = (node.arguments.head as Expression).copy
 			replaceNode(node, newInfix)
 			return true
 		}
@@ -81,7 +81,7 @@ class ConvertingVisitor extends ASTVisitor {
 			val newName = Introspector::decapitalize(identifier.substring("set".length))
 			val newNode = node.AST.newAssignment => [a|
 				a.leftHandSide = toFieldAccess(node, newName)
-				a.rightHandSide = copySubtree(node.AST, node.arguments.get(0) as ASTNode) as Expression
+				a.rightHandSide = (node.arguments.head as Expression).copy
 			]
 			replaceNode(node, newNode)
 		}
@@ -93,8 +93,8 @@ class ConvertingVisitor extends ASTVisitor {
 			case InfixExpression$Operator::EQUALS: {
 				val op = '==='
 				val newInfix = new CustomInfixExpression(exp.AST, op)
-				newInfix.leftOperand = copySubtree(exp.AST, exp.leftOperand) as Expression
-				newInfix.rightOperand = copySubtree(exp.AST, exp.rightOperand) as Expression
+				newInfix.leftOperand = exp.leftOperand.copy
+				newInfix.rightOperand = exp.rightOperand.copy
 				replaceNode(exp, newInfix)
 			}
 			case InfixExpression$Operator::AND:
