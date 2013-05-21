@@ -8,7 +8,6 @@ import org.eclipse.jdt.core.dom.CastExpression
 import org.eclipse.jdt.core.dom.ConditionalExpression
 import org.eclipse.jdt.core.dom.CustomInfixExpression
 import org.eclipse.jdt.core.dom.EmptyStatement
-import org.eclipse.jdt.core.dom.Expression
 import org.eclipse.jdt.core.dom.ExpressionStatement
 import org.eclipse.jdt.core.dom.FieldAccess
 import org.eclipse.jdt.core.dom.FieldDeclaration
@@ -21,6 +20,7 @@ import org.eclipse.jdt.core.dom.Modifier$ModifierKeyword
 import org.eclipse.jdt.core.dom.Name
 import org.eclipse.jdt.core.dom.NullLiteral
 import org.eclipse.jdt.core.dom.PackageDeclaration
+import org.eclipse.jdt.core.dom.QualifiedName
 import org.eclipse.jdt.core.dom.ReturnStatement
 import org.eclipse.jdt.core.dom.StringLiteral
 import org.eclipse.jdt.core.dom.Type
@@ -28,8 +28,6 @@ import org.eclipse.jdt.core.dom.VariableDeclarationExpression
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement
 import org.eclipse.xtend.java2xtend.XtendFor
-import org.eclipse.jdt.core.dom.SimpleName
-import org.eclipse.jdt.core.dom.QualifiedName
 
 class XtendASTFlattener extends NaiveASTFlattener {
 	var helper = new XtendASTFlattenerHelper();

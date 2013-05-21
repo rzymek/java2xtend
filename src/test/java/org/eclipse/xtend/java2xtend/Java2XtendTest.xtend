@@ -1,7 +1,7 @@
 package org.eclipse.xtend.java2xtend
 
 import java.io.File
-import org.apache.commons.io.FileUtils
+import org.apache.commons.io.IOUtils
 import org.eclipse.jdt.core.dom.CompilationUnit
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -9,7 +9,6 @@ import org.junit.runners.Parameterized
 import org.junit.runners.Parameterized$Parameters
 
 import static org.junit.Assert.*
-import org.apache.commons.io.IOUtils
 
 class DebugJava2Xtend extends Java2Xtend {
 	
