@@ -260,9 +260,9 @@ class XtendASTFlattener extends NaiveASTFlattener {
 		false
 	}
 
-	private def getAccessOperator(Expression expression) {
-		if (expression instanceof Name) {
-			val qname = expression as Name
+	private def getAccessOperator(ASTNode node) {
+		if (node instanceof Name) {
+			val qname = node as Name
 			if (qname.name.matches('^[A-Z][^A-Z]?.*')) {
 				return '::'
 			}
@@ -296,6 +296,13 @@ class XtendASTFlattener extends NaiveASTFlattener {
 		} else {
 			super.visit(exp)
 		}
+	}
+
+	override visit(QualifiedName node) {
+		node.qualifier.accept(this)
+		this.buffer.append(getAccessOperator(node.qualifier))
+		node.name.accept(this)
+		false
 	}
 
 }
