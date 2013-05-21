@@ -17,6 +17,7 @@ import org.eclipse.jdt.core.dom.MethodDeclaration
 import org.eclipse.jdt.core.dom.Modifier$ModifierKeyword
 import org.eclipse.jdt.core.dom.NullLiteral
 import org.eclipse.jdt.core.dom.PackageDeclaration
+import org.eclipse.jdt.core.dom.PrefixExpression
 import org.eclipse.jdt.core.dom.ReturnStatement
 import org.eclipse.jdt.core.dom.StringLiteral
 import org.eclipse.jdt.core.dom.Type

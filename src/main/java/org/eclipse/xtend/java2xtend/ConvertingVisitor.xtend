@@ -21,6 +21,7 @@ import static org.eclipse.jdt.core.dom.ASTNode.*
 
 import static extension java.lang.Character.*
 import static extension org.eclipse.xtend.java2xtend.ConvertingVisitor.*
+import org.eclipse.jdt.core.dom.PrefixExpression
 
 class ConvertingVisitor extends ASTVisitor {
 
@@ -58,10 +59,17 @@ class ConvertingVisitor extends ASTVisitor {
 		}
 		
 		if (node.name.identifier == 'equals' && node.arguments.size === 1) {
-			val newInfix = new CustomInfixExpression(node.AST, '==')
+			var ASTNode replace = node;
+			var operator = '=='
+			if(#[node.parent].filter(typeof(PrefixExpression)).exists[it.operator == PrefixExpression$Operator::NOT]) {
+				replace = node.parent;
+				operator = '!='
+			}
+			
+			val newInfix = new CustomInfixExpression(node.AST, operator)
 			newInfix.leftOperand = node.expression.copy
 			newInfix.rightOperand = (node.arguments.head as Expression).copy
-			replaceNode(node, newInfix)
+			replaceNode(replace, newInfix)
 			return true
 		}
 		
@@ -134,7 +142,7 @@ class ConvertingVisitor extends ASTVisitor {
 		} 
 		true
 	} 
-	
+
 	private def replaceOpWithMethod(InfixExpression exp, String name) {
 		val newNode = exp.AST.newMethodInvocation => [m|
 			m.expression = exp.leftOperand.copy
