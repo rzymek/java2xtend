@@ -1,6 +1,7 @@
 package org.eclipse.xtend.java2xtend
 
 import com.google.common.base.Optional
+import java.beans.Introspector
 import java.util.List
 import org.eclipse.jdt.core.dom.ASTNode
 import org.eclipse.jdt.core.dom.ASTVisitor
@@ -8,13 +9,17 @@ import org.eclipse.jdt.core.dom.ChildListPropertyDescriptor
 import org.eclipse.jdt.core.dom.CustomInfixExpression
 import org.eclipse.jdt.core.dom.EnhancedForStatement
 import org.eclipse.jdt.core.dom.Expression
+import org.eclipse.jdt.core.dom.ForStatement
 import org.eclipse.jdt.core.dom.InfixExpression
 import org.eclipse.jdt.core.dom.MethodInvocation
 import org.eclipse.jdt.core.dom.NameWrapper
 import org.eclipse.jdt.core.dom.TypeLiteral
-import java.beans.Introspector
-import static extension java.lang.Character.*;
-import static org.eclipse.jdt.core.dom.ASTNode.*;
+import org.eclipse.jdt.internal.core.dom.XtendFor
+
+import static org.eclipse.jdt.core.dom.ASTNode.*
+
+import static extension java.lang.Character.*
+import static extension org.eclipse.xtend.java2xtend.ConvertingVisitor.*
 
 class ConvertingVisitor extends ASTVisitor {
 

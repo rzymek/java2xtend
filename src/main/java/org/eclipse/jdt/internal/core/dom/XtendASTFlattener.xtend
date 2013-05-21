@@ -22,6 +22,36 @@ import org.eclipse.jdt.core.dom.Type
 import org.eclipse.jdt.core.dom.VariableDeclarationExpression
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement
+import static org.eclipse.jdt.core.dom.InfixExpression$Operator.*
+import org.eclipse.jdt.core.dom.Expression
+
+@Data
+class XtendFor {	
+	VariableDeclarationFragment variable	
+	String rangeOperator
+	Expression rangeTo
+	
+	static def create(ForStatement node) {
+		val decl = node.initializers.filter(typeof(VariableDeclarationExpression)).head
+		if (decl == null)
+			return null
+		val fragments = decl.fragments.filter(typeof(VariableDeclarationFragment)).toList
+		if (fragments.size != 1)
+			return null
+		val variable = fragments.filter(typeof(VariableDeclarationFragment)).head
+		var expr = node.expression
+		if (expr == null || !(expr instanceof InfixExpression))
+			return null
+		var infix = expr as InfixExpression
+		val rangeOperator = switch (infix.operator) {
+			case LESS: '..<'
+			case LESS_EQUALS: '..'
+		}
+		if (rangeOperator == null)
+			return null
+		new XtendFor(variable, rangeOperator, infix.rightOperand)		
+	}	
+}
 
 class XtendASTFlattener extends NaiveASTFlattener {
 	var helper = new XtendASTFlattenerHelper();
@@ -41,43 +71,33 @@ class XtendASTFlattener extends NaiveASTFlattener {
 		}
 		num
 	}
-	
-	  override visit(ForStatement node) {
-    	val decl = node.initializers.filter(typeof(VariableDeclarationExpression)).head
-    	if(decl == null) return super.visit(node)
-    	val fragments = decl.fragments.filter(typeof(VariableDeclarationFragment)).toList
-    	if(fragments.size != 1) return super.visit(node)    	
-    	var fragment = fragments.filter(typeof(VariableDeclarationFragment)).head
-    	var expr = node.expression
-    	if(expr == null || !(expr instanceof InfixExpression)) return super.visit(node)
-    	var infix = expr as InfixExpression
-    	printIndent
-    	this.buffer.append('for (')
-    	this.buffer.append(fragment.name)
+
+	override visit(ForStatement node) {
+		val xfor = XtendFor::create(node)
+		if(xfor == null)
+			return super.visit(node)
+		printIndent
+		this.buffer.append('for (')
+		this.buffer.append(xfor.variable.name)
 		this.buffer.append(': ')
-		fragment.initializer.accept(this)
-		this.buffer.append('..')
-		//TODO: 
-		// '<' = '..<'
-		// '<=' = '..'
-		//else -> unsupported
-		this.buffer.append(infix.operator)
-		infix.rightOperand.accept(this)
-		this.buffer.append(') ')	
-	    node.body.accept(this)
-    	false
-  }
+		xfor.variable.initializer.accept(this)
+		this.buffer.append(xfor.rangeOperator)
+		xfor.rangeTo.accept(this)
+		this.buffer.append(') ')
+		node.body.accept(this)
+		false
+	}
 
 	override visit(StringLiteral node) {
 		val literal = node.literalValue
 		val countSingle = literal.count("'")
 		val countDouble = literal.count('"')
-		if(countSingle <= countDouble) {
-			val v = literal.replaceAll("'","\\\\'")
-			this.buffer.append("'"+v+"'");			
-		}else{
+		if (countSingle <= countDouble) {
+			val v = literal.replaceAll("'", "\\\\'")
+			this.buffer.append("'" + v + "'");
+		} else {
 			val v = literal.replaceAll('"', "\\\\")
-			this.buffer.append('"'+v+'"');						
+			this.buffer.append('"' + v + '"');
 		}
 		false
 	}
@@ -93,7 +113,7 @@ class XtendASTFlattener extends NaiveASTFlattener {
 	private def rmLastSemicolon(boolean b) {
 		for (j : 1 .. 5) {
 			val i = this.buffer.length - j
-			val char c =this.buffer.charAt(i)
+			val char c = this.buffer.charAt(i)
 			val char semicolon = ';'
 			if (c == semicolon) {
 				this.buffer.setCharAt(i, ' ')
@@ -169,15 +189,15 @@ class XtendASTFlattener extends NaiveASTFlattener {
 		printFieldDeclaration(node, node.modifiers, node.type, node.fragments)
 		false
 	}
-	
+
 	override visit(FieldDeclaration node) {
 		printFieldDeclaration(node, node.modifiers, node.type, node.fragments)
 		false
 	}
-	
+
 	private def printFieldDeclaration(ASTNode node, List<?> modifiers, Type type, List<?> fragments) {
 		printIndent
-		if (node.AST.apiLevel>= AST::JLS3) {
+		if (node.AST.apiLevel >= AST::JLS3) {
 			printModifiers(modifiers)
 		}
 		if (helper.contains(modifiers, ModifierKeyword::FINAL_KEYWORD)) {
@@ -191,7 +211,7 @@ class XtendASTFlattener extends NaiveASTFlattener {
 		}
 		printList(fragments)
 		this.buffer.append("\n")
-		
+
 	}
 
 	override visit(MethodDeclaration node) {
@@ -239,7 +259,7 @@ class XtendASTFlattener extends NaiveASTFlattener {
 		}
 		false
 	}
-	
+
 	override visit(InfixExpression exp) {
 		if (exp instanceof CustomInfixExpression) {
 			exp.leftOperand.accept(this)
@@ -251,7 +271,6 @@ class XtendASTFlattener extends NaiveASTFlattener {
 		} else {
 			super.visit(exp)
 		}
-	} 
-	
+	}
 
 }
