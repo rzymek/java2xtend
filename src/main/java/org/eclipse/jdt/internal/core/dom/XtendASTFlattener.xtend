@@ -8,16 +8,19 @@ import org.eclipse.jdt.core.dom.CastExpression
 import org.eclipse.jdt.core.dom.ConditionalExpression
 import org.eclipse.jdt.core.dom.CustomInfixExpression
 import org.eclipse.jdt.core.dom.EmptyStatement
+import org.eclipse.jdt.core.dom.Expression
 import org.eclipse.jdt.core.dom.ExpressionStatement
+import org.eclipse.jdt.core.dom.FieldAccess
 import org.eclipse.jdt.core.dom.FieldDeclaration
 import org.eclipse.jdt.core.dom.ForStatement
 import org.eclipse.jdt.core.dom.ImportDeclaration
 import org.eclipse.jdt.core.dom.InfixExpression
 import org.eclipse.jdt.core.dom.MethodDeclaration
+import org.eclipse.jdt.core.dom.MethodInvocation
 import org.eclipse.jdt.core.dom.Modifier$ModifierKeyword
+import org.eclipse.jdt.core.dom.Name
 import org.eclipse.jdt.core.dom.NullLiteral
 import org.eclipse.jdt.core.dom.PackageDeclaration
-import org.eclipse.jdt.core.dom.PrefixExpression
 import org.eclipse.jdt.core.dom.ReturnStatement
 import org.eclipse.jdt.core.dom.StringLiteral
 import org.eclipse.jdt.core.dom.Type
@@ -25,6 +28,8 @@ import org.eclipse.jdt.core.dom.VariableDeclarationExpression
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement
 import org.eclipse.xtend.java2xtend.XtendFor
+import org.eclipse.jdt.core.dom.SimpleName
+import org.eclipse.jdt.core.dom.QualifiedName
 
 class XtendASTFlattener extends NaiveASTFlattener {
 	var helper = new XtendASTFlattenerHelper();
@@ -235,6 +240,48 @@ class XtendASTFlattener extends NaiveASTFlattener {
 		} else {
 			node.body.accept(this)
 		}
+		false
+	}
+	
+	override visit(MethodInvocation node) {
+		if (node.expression != null) {
+			node.expression.accept(this)
+			this.buffer.append(getAccessOperator(node.expression))
+		}
+		if (!node.typeArguments.empty) {
+			this.buffer.append('<')
+			printList(node.typeArguments)
+			this.buffer.append('>')
+		}
+		node.name.accept(this)
+		this.buffer.append('(')
+		printList(node.arguments)
+		this.buffer.append(')')
+		false
+	}
+
+	private def getAccessOperator(Expression expression) {
+		if (expression instanceof Name) {
+			val qname = expression as Name
+			if (qname.name.matches('^[A-Z][^A-Z]?.*')) {
+				return '::'
+			}
+		}
+		return '.'
+	}
+	
+	private def getName(Name name) {
+		if(name.qualifiedName) {
+			return (name as QualifiedName).name.identifier			
+		}else{
+			return name.fullyQualifiedName
+		}	
+	}
+	
+	override visit(FieldAccess node) {
+		node.expression.accept(this)
+		this.buffer.append(getAccessOperator(node.expression))
+		node.name.accept(this)
 		false
 	}
 
