@@ -3,32 +3,21 @@ java2xtend
 
 The aim it to aid in converting pure Java code to Xtend sources.
 Uses Eclipse JDT AST for Java parsing.
+Licenced under [Eclipse Public License](http://www.eclipse.org/legal/epl-v10.html)
 
 You can try it online at http://www.j2x.cloudbees.net/
 
-The comverter also tries to Xtend'ify Java constructs like:
-* `obj1.equals(obj2)` -> `obj1 == obj2`
-* `obj1 == obj2` -> `obj1 === obj2`
-* `System.out.println(...)` -> `println(...)`
-* `private final String v="abc";` -> `val v="abc"`
-* `person.setName(other.getPerson().getName);` -> `person.name = other.person.name`
+The converter also tries to Xtend'ify Java constructs like:
 
-Example 1:
+| Java                                       | Xtend                              | 
+| -------------------------------------------|------------------------------------|
+| obj1.equals(obj2)                          | obj1 == obj2                       |
+| obj1 == obj2                               | obj1 === obj2                      |
+| System.out.println(...)                    | println(...)                       |
+| private final String v="abc";              | val v="abc"                        |
+| person.setName(other.getPerson().getName); | person.name = other.person.name    |
 
-	public class HelloWorld {
-		public static void main(String[] args) {
-			System.out.println("Hello World!");
-		}
-	}
-after convertion will become
-
-	class HelloWorld {
-		def static void main(String[] args) {
-			println("Hello World!")
-		}
-	}
-
-Example 2:
+Example:
 
 	package com.example;
 	
@@ -44,8 +33,11 @@ Example 2:
 		public Test(List<String> list) {
 			this.list = list;
 		}
+		public static void main(String[] args) {
+			System.out.println("Hello World!");
+		}
 	}
-will yeld
+after convertion will become
 
 	package com.example
 	
@@ -60,6 +52,9 @@ will yeld
 	
 		new(List<String> list) {
 			this.list = list;
+		}
+		def static void main(String[] args) {
+			println("Hello World!")
 		}
 	}
 Usage
