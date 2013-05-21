@@ -37,6 +37,7 @@ Example:
 			System.out.println("Hello World!");
 		}
 	}
+jantar10-long.jpg
 after convertion will become
 
 	package com.example
@@ -59,12 +60,32 @@ after convertion will become
 	}
 Usage
 =====
+**1.** Get the source
 
-	val j2x = new org.eclipse.xtend.java2xtend.Java2Xtend;
-	val javaCode = '//java code'
-	val String xtendCode = j2x.toXtend(javaCode);
+    git clone https://github.com/rzymek/java2xtend.git
+    
+**2.** Build it and install to local maven repository:
+
+    cd java2xtend
+    mvn install
+
+**3.** Add a dependency to your pom.xml:
+
+    <dependency>
+        <groupId>org.eclipse.xtend</groupId>
+        <artifactId>java2xtend</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </dependency>
+
+**4.** Use it in your code:
+
+    val j2x = new org.eclipse.xtend.java2xtend.Java2Xtend;
+    val javaCode = '//java code'
+    val String xtendCode = j2x.toXtend(javaCode);
+    
 Build
 =====
 1. Generate Eclipse project: `mvn eclipse:eclipse`
 2. In Eclipse import the project using `File > Import > Existing project into workspace...`
 3. Make sure you have the Xtend Eclipse Plugin. You can install it from Eclipse marketplace (`Help > Eclipse Marketplace ...`)
+
