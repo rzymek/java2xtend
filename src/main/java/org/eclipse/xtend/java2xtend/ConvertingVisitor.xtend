@@ -126,13 +126,10 @@ class ConvertingVisitor extends ASTVisitor {
 	
 	override visit(InfixExpression exp) {
 		switch exp.operator {
-			case InfixExpression$Operator::EQUALS: {
-				val op = '==='
-				val newInfix = new CustomInfixExpression(exp.AST, op)
-				newInfix.leftOperand = exp.leftOperand.copy
-				newInfix.rightOperand = exp.rightOperand.copy
-				replaceNode(exp, newInfix)
-			}
+			case InfixExpression$Operator::EQUALS: 
+				replaceOp(exp, '===')
+			case InfixExpression$Operator::NOT_EQUALS: 
+				replaceOp(exp, '!==')
 			case InfixExpression$Operator::AND:
 				replaceOpWithMethod(exp, 'bitwiseAnd')
 			case InfixExpression$Operator::OR:
@@ -143,6 +140,13 @@ class ConvertingVisitor extends ASTVisitor {
 		true
 	} 
 
+	private def replaceOp(InfixExpression exp, String op) {
+		val newInfix = new CustomInfixExpression(exp.AST, op)
+		newInfix.leftOperand = exp.leftOperand.copy
+		newInfix.rightOperand = exp.rightOperand.copy
+		replaceNode(exp, newInfix)
+	}
+	
 	private def replaceOpWithMethod(InfixExpression exp, String name) {
 		val newNode = exp.AST.newMethodInvocation => [m|
 			m.expression = exp.leftOperand.copy
