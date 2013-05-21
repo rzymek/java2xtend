@@ -5,6 +5,7 @@ import java.beans.Introspector
 import java.util.List
 import org.eclipse.jdt.core.dom.ASTNode
 import org.eclipse.jdt.core.dom.ASTVisitor
+import org.eclipse.jdt.core.dom.Block
 import org.eclipse.jdt.core.dom.ChildListPropertyDescriptor
 import org.eclipse.jdt.core.dom.CustomInfixExpression
 import org.eclipse.jdt.core.dom.EnhancedForStatement
@@ -15,13 +16,11 @@ import org.eclipse.jdt.core.dom.MethodInvocation
 import org.eclipse.jdt.core.dom.NameWrapper
 import org.eclipse.jdt.core.dom.Statement
 import org.eclipse.jdt.core.dom.TypeLiteral
-import org.eclipse.jdt.internal.core.dom.XtendFor
 
 import static org.eclipse.jdt.core.dom.ASTNode.*
 
 import static extension java.lang.Character.*
 import static extension org.eclipse.xtend.java2xtend.ConvertingVisitor.*
-import org.eclipse.jdt.core.dom.Block
 
 class ConvertingVisitor extends ASTVisitor {
 
