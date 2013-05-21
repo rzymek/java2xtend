@@ -8,6 +8,7 @@ import org.eclipse.jdt.core.dom.CastExpression
 import org.eclipse.jdt.core.dom.ConditionalExpression
 import org.eclipse.jdt.core.dom.CustomInfixExpression
 import org.eclipse.jdt.core.dom.EmptyStatement
+import org.eclipse.jdt.core.dom.Expression
 import org.eclipse.jdt.core.dom.ExpressionStatement
 import org.eclipse.jdt.core.dom.FieldDeclaration
 import org.eclipse.jdt.core.dom.ForStatement
@@ -15,6 +16,7 @@ import org.eclipse.jdt.core.dom.ImportDeclaration
 import org.eclipse.jdt.core.dom.InfixExpression
 import org.eclipse.jdt.core.dom.MethodDeclaration
 import org.eclipse.jdt.core.dom.Modifier$ModifierKeyword
+import org.eclipse.jdt.core.dom.NullLiteral
 import org.eclipse.jdt.core.dom.PackageDeclaration
 import org.eclipse.jdt.core.dom.ReturnStatement
 import org.eclipse.jdt.core.dom.StringLiteral
@@ -22,8 +24,8 @@ import org.eclipse.jdt.core.dom.Type
 import org.eclipse.jdt.core.dom.VariableDeclarationExpression
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement
+
 import static org.eclipse.jdt.core.dom.InfixExpression$Operator.*
-import org.eclipse.jdt.core.dom.Expression
 
 @Data
 class XtendFor {	
@@ -189,6 +191,11 @@ class XtendASTFlattener extends NaiveASTFlattener {
 		printFieldDeclaration(node, node.modifiers, node.type, node.fragments)
 		false
 	}
+	
+	override visit(VariableDeclarationExpression node) {
+		printFieldDeclaration(node, node.modifiers, node.type, node.fragments)
+		false
+	}
 
 	override visit(FieldDeclaration node) {
 		printFieldDeclaration(node, node.modifiers, node.type, node.fragments)
@@ -196,22 +203,22 @@ class XtendASTFlattener extends NaiveASTFlattener {
 	}
 
 	private def printFieldDeclaration(ASTNode node, List<?> modifiers, Type type, List<?> fragments) {
-		printIndent
-		if (node.AST.apiLevel >= AST::JLS3) {
-			printModifiers(modifiers)
-		}
-		if (helper.contains(modifiers, ModifierKeyword::FINAL_KEYWORD)) {
-			this.buffer.append("val ")
+		val valr = if (helper.contains(modifiers, ModifierKeyword::FINAL_KEYWORD)) {
+			'val '
 		} else {
-			this.buffer.append("var ")
+			'var '
 		}
-		if (!helper.allHaveInitializers(fragments)) {
-			type.accept(this)
-			this.buffer.append(" ")
-		}
-		printList(fragments)
-		this.buffer.append("\n")
-
+		fragments.map[it as VariableDeclarationFragment].forEach[
+			printIndent
+			printModifiers(modifiers)
+			this.buffer.append(valr);
+			if(initializer == null || initializer instanceof NullLiteral) {
+				type.accept(this)
+				this.buffer.append(' ')				
+			}
+			it.accept(this)
+			this.buffer.append('\n')
+		]
 	}
 
 	override visit(MethodDeclaration node) {

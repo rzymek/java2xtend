@@ -13,6 +13,7 @@ import org.eclipse.jdt.core.dom.ForStatement
 import org.eclipse.jdt.core.dom.InfixExpression
 import org.eclipse.jdt.core.dom.MethodInvocation
 import org.eclipse.jdt.core.dom.NameWrapper
+import org.eclipse.jdt.core.dom.Statement
 import org.eclipse.jdt.core.dom.TypeLiteral
 import org.eclipse.jdt.internal.core.dom.XtendFor
 
@@ -20,6 +21,7 @@ import static org.eclipse.jdt.core.dom.ASTNode.*
 
 import static extension java.lang.Character.*
 import static extension org.eclipse.xtend.java2xtend.ConvertingVisitor.*
+import org.eclipse.jdt.core.dom.Block
 
 class ConvertingVisitor extends ASTVisitor {
 
@@ -92,6 +94,28 @@ class ConvertingVisitor extends ASTVisitor {
 		}
 		true
 	}
+	override visit(ForStatement node) {
+		val xfor = XtendFor::create(node)
+		if (xfor != null)
+			return super.visit(node)
+		//need to convert to while loop
+		val block = node.AST.newBlock
+		node.initializers
+			.map[it as Expression]
+			.map[node.AST.newExpressionStatement(it.copy)]
+			.forEach[
+				it.accept(this)
+				block.statements.add(it)
+			]
+		val whileStmt = node.AST.newWhileStatement
+		whileStmt.expression = node.expression.copy
+		whileStmt.body = node.body.copy as Block => [
+			statements.addAll(node.updaters.map[it as Expression].map[node.AST.newExpressionStatement(it.copy)])
+		]
+		block.statements.add(whileStmt)
+		replaceNode(node, block)		
+		true
+	}
 	
 	override visit(InfixExpression exp) {
 		switch exp.operator {
@@ -124,8 +148,11 @@ class ConvertingVisitor extends ASTVisitor {
 	def static copy(Expression exp) {
 		copySubtree(exp.AST, exp) as Expression
 	}
+	def static copy(Statement exp) {
+		copySubtree(exp.AST, exp) as Statement
+	}
 	
-	private def replaceNode(ASTNode node, Expression exp) {
+	private def replaceNode(ASTNode node, ASTNode exp) {
 		val parent = node.parent
 		val location = node.locationInParent
 		try{			

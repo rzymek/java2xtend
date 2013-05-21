@@ -6,16 +6,26 @@ public class ForLoop {
 		for (int i = 0, y=0; i < 10; i++) {
 			System.out.println(i);
 		}
+		
 		int i;
 		for(i=0;i<10;i++) {
 			System.out.println(i);			
 		}
+		
 		int j;
 		for(i=0,j=2;i<10;i++) {
 			System.out.println(i);			
 		}
+				
 		for (int x = 0; x <= 10; x+=2) {
 			System.out.println(i);
+		}
+		for(int z=2; accepted(z); z+=5) {
+			process(z);
+		}
+		
+		for(int j=0,i=2; i<10 && j<15; j++,i++) {
+			process(j,i);			
 		}
 	}
 }
