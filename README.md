@@ -83,9 +83,21 @@ Usage
     val javaCode = '//java code'
     val String xtendCode = j2x.toXtend(javaCode);
     
-Build
-=====
+Development
+===========
 1. Generate Eclipse project: `mvn eclipse:eclipse`
 2. In Eclipse import the project using `File > Import > Existing project into workspace...`
 3. Make sure you have the Xtend Eclipse Plugin. You can install it from Eclipse marketplace (`Help > Eclipse Marketplace ...`)
 
+Implementation
+--------------
+
+The two main classes are:
+* [org.eclipse.xtend.java2xtend.ConvertingVisitor](https://github.com/rzymek/java2xtend/blob/master/src/main/java/org/eclipse/xtend/java2xtend/ConvertingVisitor.xtend) - modifies the Java AST tree. For examples chages `MethodInvocation` (`person.setName(x)`) to `Assignment` with `FieldAccess` (`person.name = x`)
+* [org.eclipse.jdt.internal.core.dom.XtendASTFlattener](https://github.com/rzymek/java2xtend/blob/master/src/main/java/org/eclipse/jdt/internal/core/dom/XtendASTFlattener.xtend) - overrides methods of the `NaiveASTFlattener` AST to Java code serializer.
+
+The easiest way to test convetion is to put a Java source file in `src/test/resources` and run 
+[org.eclipse.xtend.java2xtend.Java2XtendTest](https://github.com/rzymek/java2xtend/blob/master/src/test/java/org/eclipse/xtend/java2xtend/Java2XtendTest.xtend?source=cc).
+It's a JUnit4 test, that runs the convertion on every file found in the root (`/`) of test classpath.
+Note that the test files should do not end with `.java` bacause by default Eclipse excludes `*.java` resources. 
+After the test in run on every file, you can rerun the specific test case using Eclipse's JUnit view.
