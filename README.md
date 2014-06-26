@@ -83,6 +83,13 @@ Usage
     val javaCode = '//java code'
     val String xtendCode = j2x.toXtend(javaCode);
     
+
+**5.** Or use it on the command line:
+
+    java -jar target/java2xtend-1.0-SNAPSHOT-jar-with-dependencies.jar <path to java file>
+
+The converted XTend code will be output to stdout.
+
 Development
 ===========
 1. Generate Eclipse project: `mvn eclipse:eclipse`
